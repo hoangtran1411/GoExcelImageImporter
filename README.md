@@ -39,7 +39,13 @@ Một công cụ hiệu chỉnh Excel mạnh mẽ được viết bằng Go, gi�
    go run main.go
    ```
 
-### 🔨 Build thành file thực thi (.exe)
+### Build và Release tự động
+Dự án đã được thiết lập **GitHub Actions**. Mỗi khi bạn `push` code lên nhánh `main`, hệ thống sẽ tự động:
+- Kiểm tra lỗi (Linting/Testing).
+- Build file `.exe` cho Windows 64-bit.
+- Bạn có thể tải file thực thi mới nhất trong phần **Actions** của repository.
+
+### 🔨 Build thủ công (.exe)
 Để build ứng dụng mà không hiện cửa sổ console trên Windows:
 ```powershell
 go build -ldflags="-s -w -H=windowsgui" -o ImageToExcel.exe
