@@ -14,7 +14,7 @@ Tài liệu này ghi lại các ý tưởng và kế hoạch để nâng cấp �
 - [ ] **Unit Tests:** Bổ sung thêm test case cho `internal/engine` (đặc biệt là logic mapping và scaling).
 - [x] **Concurrency Tuning:** Cho phép người dùng điều chỉnh số lượng "Workers" từ giao diện để tối ưu theo cấu hình máy.
 - [ ] **Memory Management:** Thử nghiệm cơ chế `AddPicture` thay vì `AddPictureFromBytes` nếu file ảnh quá lớn để giảm tải bộ nhớ đệm.
-- [ ] **CI/CD:** Thiết lập GitHub Actions để tự động build file `.exe` mỗi khi có release mới.
+- [x] **CI/CD:** Thiết lập GitHub Actions để tự động build file `.exe` mỗi khi có release mới.
 
 ## 🎨 Giao diện (GUI Enhancements)
 
