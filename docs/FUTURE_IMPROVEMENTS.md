@@ -13,15 +13,17 @@ Tài liệu này ghi lại các ý tưởng và kế hoạch để nâng cấp �
 
 - [ ] **Unit Tests:** Bổ sung thêm test case cho `internal/engine` (đặc biệt là logic mapping và scaling).
 - [x] **Concurrency Tuning:** Cho phép người dùng điều chỉnh số lượng "Workers" từ giao diện để tối ưu theo cấu hình máy.
-- [ ] **Memory Management:** Thử nghiệm cơ chế `AddPicture` thay vì `AddPictureFromBytes` nếu file ảnh quá lớn để giảm tải bộ nhớ đệm.
+- [x] **Wails Migration:** Chuyển đổi từ Fyne sang Wails để có giao diện đẹp và nhẹ hơn.
+- [x] **Auto Update:** Tích hợp cơ chế tự động cập nhật qua GitHub Releases.
 - [x] **CI/CD:** Thiết lập GitHub Actions để tự động build file `.exe` mỗi khi có release mới.
 
 ## 🎨 Giao diện (GUI Enhancements)
 
-- Thêm chế độ Tối (Dark Mode) / Sáng (Light Mode).
-- Thêm biểu tượng (Icon) cho ứng dụng.
-- **[x] Cải thiện thanh tiến trình (Progress Bar):** Hiển thị chi tiết số lượng file thiếu qua thông báo kết thúc.
+- **[x] Dark Mode:** Giao diện tối hiện đại, dễ nhìn.
+- **[x] Biểu tượng (Icon):** Ứng dụng có icon riêng và giao diện chuyên nghiệp.
+- **[x] Cải thiện thanh tiến trình (Progress Bar):** Hiển thị chi tiết phần trăm và trạng thái.
+- **[x] Responsive UI:** Giao diện tự động co giãn phù hợp kích thước cửa sổ.
 
 ## 📚 Tài liệu lưu trữ
-- `ARCHITECTURE.md`: Mô tả chi tiết cấu trúc code (dự kiến).
-- `USER_GUIDE.md`: Hướng dẫn chi tiết cho người dùng cuối (dự kiến).
+- `ARCHITECTURE.md`: Mô tả chi tiết cấu trúc code Wails.
+- `SKILL.md`: Hướng dẫn tái sử dụng kỹ năng Wails.
