@@ -32,7 +32,7 @@ ImageToExcel/
     - **Dispatching**: Quét thư mục ảnh, tạo Jobs.
     - **Workers**: Xử lý ảnh song song (Scaling, Decode).
     - **Collection**: Gom kết quả và chèn vào Excel (Single Thread safe).
-5.  **Feedback**: Trong quá trình, Backend gửi event `progress` ngược lại Frontend thông qua Wails Events.
+5.  **Feedback**: Trong quá trình, Backend gửi event `progress` ngược lại Frontend. Khi hoàn tất, Frontend hiển thị **Toast Notification** thông báo kết quả chi tiết.
 
 ## 🔄 Auto Update Mechanism
 

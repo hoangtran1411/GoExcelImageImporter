@@ -5,7 +5,7 @@ Một công cụ hiệu chỉnh Excel mạnh mẽ được viết bằng Go và 
 ## ✨ Tính năng nổi bật
 
 - **🚀 Hiệu suất vượt trội:** Backend Go xử lý ảnh và Excel cực nhanh với Worker Pool.
-- **🎨 Giao diện hiện đại:** Sử dụng công nghệ Web (HTML5, CSS3) cho giao diện đẹp mắt, hỗ trợ Dark Mode.
+- **🎨 Giao diện hiện đại:** Dark Mode cao cấp, **Toast Notification** mượt mà & Responsive.
 - **� Auto Update:** Tự động kiểm tra và cập nhật phiên bản mới nhất từ GitHub Releases.
 - **�💾 Tối ưu bộ nhớ:** Stream dữ liệu Excel để xử lý file lớn mà không tốn nhiều RAM.
 - **🔍 Tìm kiếm thông minh:** Tự động khớp tên file ảnh với mã sản phẩm linh hoạt.

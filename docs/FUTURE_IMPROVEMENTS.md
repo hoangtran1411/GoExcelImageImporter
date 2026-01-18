@@ -11,7 +11,7 @@ Tài liệu này ghi lại các ý tưởng và kế hoạch để nâng cấp �
 
 ## 🛠️ Cải tiến kỹ thuật (Technical Improvements)
 
-- [ ] **Unit Tests:** Bổ sung thêm test case cho `internal/engine` (đặc biệt là logic mapping và scaling).
+- [x] **Unit Tests:** Bổ sung thêm test case cho `internal/engine` (đặc biệt là logic mapping và scaling).
 - [x] **Concurrency Tuning:** Cho phép người dùng điều chỉnh số lượng "Workers" từ giao diện để tối ưu theo cấu hình máy.
 - [x] **Wails Migration:** Chuyển đổi từ Fyne sang Wails để có giao diện đẹp và nhẹ hơn.
 - [x] **Auto Update:** Tích hợp cơ chế tự động cập nhật qua GitHub Releases.
@@ -26,4 +26,4 @@ Tài liệu này ghi lại các ý tưởng và kế hoạch để nâng cấp �
 
 ## 📚 Tài liệu lưu trữ
 - `ARCHITECTURE.md`: Mô tả chi tiết cấu trúc code Wails.
-- `SKILL.md`: Hướng dẫn tái sử dụng kỹ năng Wails.
+- `.agent/skills/`: Bộ kỹ năng phát triển, test và performance patterns tái sử dụng.
