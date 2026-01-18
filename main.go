@@ -18,11 +18,12 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "Image to Excel Importer",
-		Width:     900,
-		Height:    720,
-		MinWidth:  700,
-		MinHeight: 600,
+		Title:         "Image to Excel Importer",
+		Width:         900,
+		Height:        835,
+		DisableResize: true,
+		MinWidth:      700,
+		MinHeight:     600,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
