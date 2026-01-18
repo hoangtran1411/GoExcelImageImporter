@@ -18,12 +18,27 @@ Một công cụ hiệu chỉnh Excel mạnh mẽ được viết bằng Go và 
 - **Frontend:** HTML, CSS (Custom Premium Theme), JavaScript
 - **Thư viện Excel:** [Excelize v2](https://github.com/xuri/excelize)
 
-## 🚀 Hướng dẫn khởi động
+## 💻 Sự tương thích & Yêu cầu hệ thống
 
-### Yêu cầu hệ thống
-- Go 1.20 trở lên.
-- [Wails CLI](https://wails.io/docs/gettingstarted/installation)
-- WebView2 Runtime (thường có sẵn trên Windows 10/11).
+Công cụ này được tối ưu hóa cho môi trường Windows. Dưới đây là chi tiết về khả năng tương thích:
+
+### Hệ điều hành hỗ trợ
+| Phiên bản | Trạng thái | Ghi chú |
+| :--- | :--- | :--- |
+| **Windows 11** | ✅ Tốt nhất | Hoạt động hoàn hảo, WebView2 đã có sẵn. |
+| **Windows 10** | ✅ Tốt nhất | Hoạt động hoàn hảo, WebView2 thường đã có sẵn (hoặc qua Windows Update). |
+| **Windows 7 / 8 / 8.1** | ⚠️ Hạn chế | Yêu cầu cài đặt [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) bản dành cho Win 7/8. Microsoft đã ngừng hỗ trợ chính thức. |
+| **Windows Server** | ✅ Hỗ trợ | Hoạt động tốt trên Windows Server 2016 trở lên (cần WebView2). |
+
+### Yêu cầu phần mềm & Phần cứng
+- **Kiến trúc:** Windows 64-bit (x64) là bắt buộc.
+- **WebView2:** Yếu tố then chốt để hiển thị giao diện.
+- **RAM:** Tối thiểu 2GB (Khuyến nghị 4GB+ để xử lý mượt mà hàng nghìn ảnh).
+- **Bộ nhớ:** Khoảng 50MB cho ứng dụng và file tạm.
+
+### Dành cho nhà phát triển (Build từ nguồn)
+- **Go:** 1.20 trở lên (Project đang dùng 1.25.5).
+- **Wails CLI:** Chạy lệnh `go install github.com/wailsapp/wails/v2/cmd/wails@latest`.
 
 ### Cài đặt Wails CLI
 ```bash
