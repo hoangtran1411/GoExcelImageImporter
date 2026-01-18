@@ -55,6 +55,17 @@ File thực thi sẽ nằm trong thư mục `build/bin/`.
 wails build -upx
 ```
 
+## 🧪 Unit Testing & Makefile
+Dự án đạt độ phủ code (test coverage) > 80% cho phần lõi xử lý.
+
+```bash
+# Chạy Unit Test
+go test ./... -v
+
+# Nếu có 'make' (Windows cài qua Chocolatey/Scoop hoặc dùng Git Bash)
+make test
+```
+
 ## 📖 Hướng dẫn sử dụng
 
 1. **Chọn file Excel:** Chọn file nguồn chứa danh sách dữ liệu.

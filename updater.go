@@ -81,17 +81,20 @@ func (a *App) CheckForUpdate() UpdateInfo {
 		}
 	}
 
-	// Compare versions (simple string comparison, assumes semantic versioning)
-	if info.LatestVer != "" && info.LatestVer != CurrentVersion {
-		// Remove 'v' prefix for comparison
-		current := strings.TrimPrefix(CurrentVersion, "v")
-		latest := strings.TrimPrefix(info.LatestVer, "v")
-		if latest > current {
-			info.Available = true
-		}
+	// Compare versions
+	if info.LatestVer != "" && CompareVersions(info.LatestVer, CurrentVersion) {
+		info.Available = true
 	}
 
 	return info
+}
+
+// CompareVersions returns true if v1 is newer than v2
+func CompareVersions(v1, v2 string) bool {
+	// Remove 'v' prefix
+	v1 = strings.TrimPrefix(v1, "v")
+	v2 = strings.TrimPrefix(v2, "v")
+	return v1 > v2
 }
 
 // PerformUpdate downloads and installs the new version
