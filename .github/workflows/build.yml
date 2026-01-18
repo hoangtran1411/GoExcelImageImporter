@@ -16,7 +16,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.25.5'
         check-latest: true
         cache: true
 
@@ -24,6 +24,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+
+    - name: Run Unit Tests
+      run: go test -v ./internal/engine ./
 
     - name: Install Wails
       run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
