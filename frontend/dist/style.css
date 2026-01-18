@@ -372,50 +372,98 @@ select {
     text-align: right;
 }
 
-/* ===== Status Section ===== */
-.status-section {
-    display: none;
+/* ===== Toast Notifications ===== */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+    pointer-events: none;
+    /* Allow clicking through container */
 }
 
-.status-section.active {
-    display: block;
-}
-
-.status-message {
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 16px 20px;
-    border-radius: var(--border-radius-sm);
-    font-size: 0.9375rem;
-    animation: slideIn 0.3s ease;
+    background: rgba(30, 37, 51, 0.95);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    min-width: 300px;
+    max-width: 400px;
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s ease;
 }
 
-@keyframes slideIn {
+.toast.hiding {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.toast-icon svg {
+    width: 16px;
+    height: 16px;
+    color: white;
+}
+
+.toast-message {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Toast Variants */
+.toast.success {
+    border-left: 4px solid var(--accent-success);
+}
+
+.toast.success .toast-icon {
+    background: var(--accent-success);
+}
+
+.toast.error {
+    border-left: 4px solid var(--accent-error);
+}
+
+.toast.error .toast-icon {
+    background: var(--accent-error);
+}
+
+.toast.info {
+    border-left: 4px solid var(--accent-primary);
+}
+
+.toast.info .toast-icon {
+    background: var(--accent-primary);
+}
+
+@keyframes toastSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateX(40px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
-}
-
-.status-message.success {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid var(--accent-success);
-    color: var(--accent-success);
-}
-
-.status-message.error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid var(--accent-error);
-    color: var(--accent-error);
-}
-
-.status-message.info {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid var(--accent-primary);
-    color: var(--accent-primary);
 }
 
 /* ===== Footer ===== */

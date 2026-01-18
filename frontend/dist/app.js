@@ -166,7 +166,7 @@ async function startProcess() {
         Processing...
     `;
 
-    showStatus('Processing images...', 'info');
+
 
     try {
         const result = await window.go.main.App.Process(config);
@@ -204,12 +204,39 @@ function updateProgress(percent) {
     text.textContent = Math.round(percent) + '%';
 }
 
-// Show status message
+// Show sliding toast notification
 function showStatus(message, type) {
-    const section = document.getElementById('statusSection');
-    const messageEl = document.getElementById('statusMessage');
+    const container = document.getElementById('toast-container');
 
-    section.classList.add('active');
-    messageEl.className = 'status-message ' + type;
-    messageEl.textContent = message;
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    // Icon based on type
+    let iconSvg = '';
+    if (type === 'success') {
+        iconSvg = '<svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    } else if (type === 'error') {
+        iconSvg = '<svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    } else {
+        iconSvg = '<svg viewBox="0 0 24 24" fill="none"><path d="M13 16H11V12H13M12 8H12.01M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+
+    toast.innerHTML = `
+        <div class="toast-icon">${iconSvg}</div>
+        <div class="toast-message">${message}</div>
+    `;
+
+    // Append to container
+    container.appendChild(toast);
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        toast.addEventListener('transitionend', () => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        });
+    }, 4000);
 }
