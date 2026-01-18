@@ -1,0 +1,53 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on tags matching v*, e.g. v1.0.0
+
+permissions:
+  contents: write # Required to create releases
+
+jobs:
+  release:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.5'
+        check-latest: true
+        cache: true
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install Wails
+      run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+    - name: Build Windows EXE
+      # Build without debug symbols (-s -w) for smaller size
+      # Wails automatically adds the windowsgui flag so no console window appears
+      run: |
+        wails build -platform windows/amd64 -ldflags "-s -w"
+
+    - name: Rename Output
+      # Rename to include version/arch for clarity
+      run: |
+        Move-Item build/bin/tool_chen_anh.exe build/bin/ImageToExcel-Windows-x64.exe
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: build/bin/ImageToExcel-Windows-x64.exe
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
