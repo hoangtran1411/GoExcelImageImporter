@@ -1,74 +1,81 @@
 # Golang Excel Image Importer
 
-Một công cụ hiệu chỉnh Excel mạnh mẽ được viết bằng Go, giúp tự động chèn hình ảnh vào bảng tính dựa trên mã sản phẩm. Công cụ này được tối ưu hóa cho hiệu suất cao, xử lý hàng ngàn hình ảnh một cách nhanh chóng nhờ cơ chế Worker Pool.
+Một công cụ hiệu chỉnh Excel mạnh mẽ được viết bằng Go và Wails, giúp tự động chèn hình ảnh vào bảng tính dựa trên mã sản phẩm. Công cụ này kết hợp sức mạnh xử lý của Go với giao diện hiện đại của Web (HTML/CSS/JS).
 
 ## ✨ Tính năng nổi bật
 
-- **🚀 Hiệu suất vượt trội:** Sử dụng Worker Pool để xử lý song song các tác vụ tải và nén ảnh.
-- **📱 Giao diện thân thiện:** Được xây dựng với Fyne, cung cấp giao diện GUI dễ sử dụng trên Windows.
-- **💾 Tối ưu bộ nhớ:** Sử dụng Iterator để đọc file Excel lớn mà không tốn nhiều RAM.
-- **🔍 Tìm kiếm thông minh:** Tự động khớp tên file ảnh với mã sản phẩm trong cột Excel được chỉ định.
-- **📏 Tự động căn chỉnh:** Ảnh được tự động điều chỉnh tỷ lệ để vừa vặn trong ô Excel.
+- **🚀 Hiệu suất vượt trội:** Backend Go xử lý ảnh và Excel cực nhanh với Worker Pool.
+- **🎨 Giao diện hiện đại:** Sử dụng công nghệ Web (HTML5, CSS3) cho giao diện đẹp mắt, hỗ trợ Dark Mode.
+- **💾 Tối ưu bộ nhớ:** Stream dữ liệu Excel để xử lý file lớn mà không tốn nhiều RAM.
+- **🔍 Tìm kiếm thông minh:** Tự động khớp tên file ảnh với mã sản phẩm linh hoạt.
+- **📦 Nhẹ và Nhanh:** Ứng dụng Wails sử dụng WebView2 có sẵn trên Windows, file thực thi nhỏ gọn (~10MB).
 
 ## 🛠️ Công nghệ sử dụng
 
-- **Ngôn ngữ:** [Go (Golang)](https://golang.org/)
+- **Backend:** [Go (Golang)](https://golang.org/)
+- **Framework:** [Wails v2](https://wails.io/)
+- **Frontend:** HTML, CSS (Custom Premium Theme), JavaScript
 - **Thư viện Excel:** [Excelize v2](https://github.com/xuri/excelize)
-- **Framework GUI:** [Fyne v2](https://fyne.io/)
 
-## 🚀 Hướng dấn khởi động
+## 🚀 Hướng dẫn khởi động
 
 ### Yêu cầu hệ thống
 - Go 1.20 trở lên.
-- Cài đặt các thư viện cần thiết cho Fyne (trên Windows yêu cầu C compiler như msys2 nếu build từ source).
+- [Wails CLI](https://wails.io/docs/gettingstarted/installation)
+- WebView2 Runtime (thường có sẵn trên Windows 10/11).
 
-### Cài đặt và Chạy
+### Cài đặt Wails CLI
+```bash
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
+```
+
+### Cài đặt và Chạy dự án
 1. Clone dự án:
    ```bash
    git clone <repository-url>
    cd ImageToExcel
    ```
 
-2. Cài đặt dependencies:
+2. Cài đặt dependencies và chạy Dev Mode:
    ```bash
-   go mod tidy
+   wails dev
    ```
+   Lệnh này sẽ tự động cài đặt Go modules và Frontend assets, sau đó mở ứng dụng.
 
-3. Chạy ứng dụng:
-   ```bash
-   go run main.go
-   ```
+### 🔨 Build bản Release
+Để tạo file `.exe` cho Windows:
+```bash
+wails build
+```
+File thực thi sẽ nằm trong thư mục `build/bin/`.
 
-### Build và Release tự động
-Dự án đã được thiết lập **GitHub Actions**. Mỗi khi bạn `push` code lên nhánh `main`, hệ thống sẽ tự động:
-- Kiểm tra lỗi (Linting/Testing).
-- Build file `.exe` cho Windows 64-bit.
-- Bạn có thể tải file thực thi mới nhất trong phần **Actions** của repository.
-
-### 🔨 Build thủ công (.exe)
-Để build ứng dụng mà không hiện cửa sổ console trên Windows:
-```powershell
-go build -ldflags="-s -w -H=windowsgui" -o ImageToExcel.exe
+Để nén nhỏ file (yêu cầu UPX):
+```bash
+wails build -upx
 ```
 
 ## 📖 Hướng dẫn sử dụng
 
 1. **Chọn file Excel:** Chọn file nguồn chứa danh sách dữ liệu.
-2. **Chọn thư mục ảnh:** Chọn thư mục chứa các file ảnh (định dạng .jpg, .png, .gif). Tên file phải khớp với mã sản phẩm.
-3. **Cấu hình cột:**
-   - **Product Code Column:** Cột chứa mã sản phẩm (Ví dụ: A, B, C...).
-   - **Image Target Column:** Cột mà bạn muốn chèn ảnh vào (Ví dụ: F, G...).
-4. **Bắt đầu:** Nhấn **Start Processing** và đợi quá trình hoàn tất. Kết quả sẽ được lưu thành một file mới có đuôi `_output.xlsx`.
+2. **Chọn thư mục ảnh:** Chọn thư mục chứa ảnh (hỗ trợ .jpg, .png, .webp...).
+3. **Cấu hình:**
+   - **Sheet Name:** Chọn Sheet cần xử lý.
+   - **Cột Mã:** Cột chứa mã sản phẩm (VD: A).
+   - **Cột Ảnh:** Cột đích để chèn ảnh (VD: F).
+   - **Kích thước:** Điều chỉnh chiều cao dòng và độ rộng cột.
+4. **Bắt đầu:** Nhấn **Start Processing** và theo dõi tiến trình.
 
 ## 📂 Cấu trúc thư mục
 
-- `main.go`: Điểm khởi đầu của ứng dụng.
-- `internal/gui`: Mã nguồn giao diện người dùng.
-- `internal/engine`: Logic xử lý hình ảnh và Excel.
-- `docs/`: Tài liệu hướng dẫn và kế hoạch phát triển.
+- `main.go`: Cấu hình cửa sổ và Wails entry.
+- `app.go`: Backend logic (Go methods exposed to JS).
+- `frontend/`: Mã nguồn giao diện (HTML/CSS/JS).
+- `internal/engine`: Core logic xử lý Excel và Ảnh.
+- `wails.json`: Cấu hình dự án Wails.
+- `build/`: Thư mục chứa file thực thi sau khi build.
 
-## 📝 Roadmap & Cải thiện tương lai
-Vui lòng xem trong thư mục `docs/` để biết thêm chi tiết về các kế hoạch nâng cấp ứng dụng.
+## 📝 Roadmap & Cải thiện
+Xem thư mục `docs/` để biết thêm chi tiết.
 
 ---
 Phát triển bởi [Antigravity]

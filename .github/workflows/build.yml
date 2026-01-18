@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build Wails App
 
 on:
   push:
@@ -9,25 +9,31 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.25.5'
+        go-version: '1.23'
         check-latest: true
         cache: true
 
-    - name: Install Dependencies
-      run: go mod tidy
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Wails
+      run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
     - name: Build Windows EXE
       run: |
-        go build -ldflags="-s -w -H=windowsgui" -o tool_chen_anh.exe main.go
+        wails build -platform windows/amd64
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: tool-chen-anh-windows-x64
-        path: tool_chen_anh.exe
+        name: ImageToExcel-Windows-x64
+        path: build/bin/tool_chen_anh.exe
