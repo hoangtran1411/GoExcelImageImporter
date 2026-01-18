@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	stdruntime "runtime"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"github.com/xuri/excelize/v2"
 )
@@ -181,4 +183,9 @@ func (a *App) OpenFileLocation(path string) error {
 	}
 	// Use Windows explorer to show the file
 	return nil
+}
+
+// GetCPUCount returns the number of logical CPUs
+func (a *App) GetCPUCount() int {
+	return stdruntime.NumCPU()
 }

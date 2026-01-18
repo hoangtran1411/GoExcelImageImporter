@@ -20,7 +20,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load current version
     loadVersion();
+
+    // Init worker count
+    initWorkerCount();
 });
+
+// Initialize worker count based on CPU cores
+async function initWorkerCount() {
+    try {
+        const cores = await window.go.main.App.GetCPUCount();
+        if (cores > 0) {
+            // Ensure element exists before setting value
+            const input = document.getElementById('workerCount');
+            if (input) {
+                input.value = cores;
+            }
+        }
+    } catch (err) {
+        console.error('Failed to get CPU count:', err);
+    }
+}
 
 // Load and display current version
 async function loadVersion() {
