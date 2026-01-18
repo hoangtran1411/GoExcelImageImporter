@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Excel Importer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4H10V10H4V4Z" fill="currentColor" opacity="0.6"/>
+                    <path d="M14 4H20V10H14V4Z" fill="currentColor"/>
+                    <path d="M4 14H10V20H4V14Z" fill="currentColor"/>
+                    <path d="M14 14H20V20H14V14Z" fill="currentColor" opacity="0.6"/>
+                </svg>
+                <h1>Image to Excel</h1>
+            </div>
+            <span class="version">v2.0 Wails</span>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- File Selection Section -->
+            <section class="card">
+                <div class="card-header">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <h2>Source Files</h2>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <label>Excel File (.xlsx)</label>
+                        <div class="file-input">
+                            <input type="text" id="excelPath" placeholder="Select Excel file..." readonly>
+                            <button class="btn btn-secondary" onclick="selectExcel()">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M3 17V20C3 20.55 3.45 21 4 21H20C20.55 21 21 20.55 21 20V17" stroke="currentColor" stroke-width="2"/><path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2"/></svg>
+                                Browse
+                            </button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Image Folder</label>
+                        <div class="file-input">
+                            <input type="text" id="imageDir" placeholder="Select image folder..." readonly>
+                            <button class="btn btn-secondary" onclick="selectImageFolder()">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M22 19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V5C2 3.9 2.9 3 4 3H9L11 5H20C21.1 5 22 5.9 22 7V19Z" stroke="currentColor" stroke-width="2"/></svg>
+                                Browse
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Section -->
+            <section class="card">
+                <div class="card-header">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <h2>Configuration</h2>
+                </div>
+                <div class="card-body">
+                    <div class="config-grid">
+                        <div class="input-group">
+                            <label>Sheet Name</label>
+                            <select id="sheetName">
+                                <option value="">Select sheet...</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Product Code Column</label>
+                            <input type="text" id="codeCol" value="A" placeholder="A">
+                        </div>
+                        <div class="input-group">
+                            <label>Image Target Column</label>
+                            <input type="text" id="imageCol" value="F" placeholder="F">
+                        </div>
+                        <div class="input-group">
+                            <label>Row Height</label>
+                            <input type="number" id="rowHeight" value="105" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Column Width</label>
+                            <input type="number" id="colWidth" value="20" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Worker Count</label>
+                            <input type="number" id="workerCount" value="10" min="1" max="50">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Section -->
+            <section class="action-section">
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+                <button class="btn btn-primary btn-large" id="processBtn" onclick="startProcess()">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M8 5V19L19 12L8 5Z" fill="currentColor"/></svg>
+                    Start Processing
+                </button>
+            </section>
+
+            <!-- Status Section -->
+            <section class="status-section" id="statusSection">
+                <div class="status-message" id="statusMessage"></div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>Built with Go + Wails • Fast & Lightweight</span>
+        </footer>
+    </div>
+
+    <script src="wails.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
