@@ -13,8 +13,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// Current version - update this when releasing new versions
-const CurrentVersion = "v2.0.0"
+// Current version - update this when releasing new versions, or use ldflags
+var CurrentVersion = "v2.0.0"
 
 // GitHub repository info
 const (

@@ -34,10 +34,9 @@ jobs:
       run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
     - name: Build Windows EXE
-      # Build without debug symbols (-s -w) for smaller size
-      # Wails automatically adds the windowsgui flag so no console window appears
+      # Build without debug symbols (-s -w) and inject version from tag
       run: |
-        wails build -platform windows/amd64 -ldflags "-s -w"
+        wails build -platform windows/amd64 -ldflags "-s -w -X main.CurrentVersion=${{ github.ref_name }}"
 
     - name: Rename Output
       # Rename to include version/arch for clarity
