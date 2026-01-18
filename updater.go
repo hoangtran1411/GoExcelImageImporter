@@ -14,7 +14,7 @@ import (
 )
 
 // Current version - update this when releasing new versions, or use ldflags
-var CurrentVersion = "v2.0.0"
+var CurrentVersion = "v2.0.6"
 
 // GitHub repository info
 const (
@@ -90,11 +90,38 @@ func (a *App) CheckForUpdate() UpdateInfo {
 }
 
 // CompareVersions returns true if v1 is newer than v2
+// Uses proper semantic version parsing (major.minor.patch)
 func CompareVersions(v1, v2 string) bool {
 	// Remove 'v' prefix
 	v1 = strings.TrimPrefix(v1, "v")
 	v2 = strings.TrimPrefix(v2, "v")
-	return v1 > v2
+
+	// Parse version parts
+	parts1 := parseVersion(v1)
+	parts2 := parseVersion(v2)
+
+	// Compare major, minor, patch in order
+	for i := 0; i < 3; i++ {
+		if parts1[i] > parts2[i] {
+			return true
+		}
+		if parts1[i] < parts2[i] {
+			return false
+		}
+	}
+	return false // Equal versions
+}
+
+// parseVersion splits version string into [major, minor, patch] integers
+func parseVersion(v string) [3]int {
+	var result [3]int
+	parts := strings.Split(v, ".")
+
+	for i := 0; i < len(parts) && i < 3; i++ {
+		// Parse integer, ignore errors (defaults to 0)
+		fmt.Sscanf(parts[i], "%d", &result[i])
+	}
+	return result
 }
 
 // PerformUpdate downloads and installs the new version

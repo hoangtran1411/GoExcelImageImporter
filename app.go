@@ -150,7 +150,7 @@ func (a *App) Process(config Config) ProcessResult {
 
 	return ProcessResult{
 		Success:      true,
-		Message:      fmt.Sprintf("Processing completed! %d images processed, %d missing", len(p.MissingCodes), len(p.MissingCodes)),
+		Message:      fmt.Sprintf("Processing completed! %d images processed, %d missing", p.ProcessedCount, len(p.MissingCodes)),
 		MissingCodes: p.MissingCodes,
 		OutputPath:   outputPath,
 	}

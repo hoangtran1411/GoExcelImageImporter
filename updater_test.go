@@ -13,6 +13,13 @@ func TestCompareVersions(t *testing.T) {
 		{"v1.9.9", "v2.0.0", false},
 		{"v2.1.0", "v2.0.9", true},
 		{"3.0.0", "v2.0.0", true}, // Test without 'v' prefix
+		// New test cases for semantic version parsing
+		{"v2.0.10", "v2.0.9", true},  // Multi-digit patch (was broken before)
+		{"v2.0.9", "v2.0.10", false}, // Reverse check
+		{"v10.0.0", "v9.0.0", true},  // Multi-digit major
+		{"v1.10.0", "v1.9.0", true},  // Multi-digit minor
+		{"v1.0", "v1.0.0", false},    // Missing patch = 0
+		{"v2.0", "v1.9.9", true},     // Short version comparison
 	}
 
 	for _, tt := range tests {

@@ -42,12 +42,13 @@ type Processor struct {
 	RowHeight   float64
 	ColWidth    float64
 
-	f            *excelize.File
-	productMap   map[string]int
-	jobs         chan Job
-	results      chan Result
-	progressChan chan float64
-	MissingCodes []string
+	f              *excelize.File
+	productMap     map[string]int
+	jobs           chan Job
+	results        chan Result
+	progressChan   chan float64
+	MissingCodes   []string
+	ProcessedCount int // Number of successfully processed images
 }
 
 func NewProcessor(excelPath, imageDir, codeCol, imageCol, sheetName string, workerCount int, rowHeight, colWidth float64) *Processor {
@@ -154,7 +155,7 @@ func (p *Processor) Run(ctx context.Context) error {
 	}()
 
 	// 4. Main Loop: Receive results and modify Excel (Single-threaded for safety)
-	processed := 0
+	p.ProcessedCount = 0
 
 	// We'll update progress based on results received
 	for res := range p.results {
@@ -166,11 +167,12 @@ func (p *Processor) Run(ctx context.Context) error {
 		err = p.insertImageToExcel(res)
 		if err != nil {
 			fmt.Println("Error inserting", res.Job.ProductCode, ":", err)
+			continue // Don't count failed insertions
 		}
 
-		processed++
+		p.ProcessedCount++
 		if p.progressChan != nil {
-			p.progressChan <- float64(processed) / float64(len(p.productMap))
+			p.progressChan <- float64(p.ProcessedCount) / float64(len(p.productMap))
 		}
 	}
 
