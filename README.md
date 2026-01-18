@@ -65,11 +65,6 @@ wails build
 ```
 File thực thi sẽ nằm trong thư mục `build/bin/`.
 
-Để nén nhỏ file (yêu cầu UPX):
-```bash
-wails build -upx
-```
-
 ## 🧪 Unit Testing & Makefile
 Dự án đạt độ phủ code (test coverage) > 80% cho phần lõi xử lý.
 
