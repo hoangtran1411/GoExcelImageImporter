@@ -84,12 +84,60 @@ body {
     background-clip: text;
 }
 
+.version-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .version {
     font-size: 0.75rem;
     color: var(--text-muted);
     padding: 4px 12px;
     background: var(--bg-secondary);
     border-radius: 999px;
+}
+
+.update-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: linear-gradient(135deg, var(--accent-success), #059669);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.update-btn.visible {
+    display: flex;
+}
+
+.update-btn svg {
+    width: 18px;
+    height: 18px;
+    color: white;
+}
+
+.update-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.7);
+    }
 }
 
 /* ===== Main Content ===== */

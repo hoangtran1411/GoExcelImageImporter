@@ -1,3 +1,6 @@
+// Global variable to store update info
+let updateInfo = null;
+
 // Wait for Wails runtime to be ready
 document.addEventListener('DOMContentLoaded', function () {
     // Listen for progress updates from Go backend
@@ -5,8 +8,69 @@ document.addEventListener('DOMContentLoaded', function () {
         runtime.EventsOn('progress', function (progress) {
             updateProgress(progress);
         });
+
+        // Listen for update progress
+        runtime.EventsOn('updateProgress', function (message) {
+            showStatus(message, 'info');
+        });
     }
+
+    // Check for updates on startup
+    checkForUpdates();
+
+    // Load current version
+    loadVersion();
 });
+
+// Load and display current version
+async function loadVersion() {
+    try {
+        const version = await window.go.main.App.GetCurrentVersion();
+        document.getElementById('versionText').textContent = version;
+    } catch (err) {
+        console.error('Failed to get version:', err);
+    }
+}
+
+// Check for updates
+async function checkForUpdates() {
+    try {
+        updateInfo = await window.go.main.App.CheckForUpdate();
+
+        if (updateInfo && updateInfo.available) {
+            // Show update button
+            const updateBtn = document.getElementById('updateBtn');
+            updateBtn.classList.add('visible');
+            updateBtn.title = `Update to ${updateInfo.latestVersion} available! Click to install`;
+            console.log('Update available:', updateInfo.latestVersion);
+        }
+    } catch (err) {
+        console.error('Failed to check for updates:', err);
+    }
+}
+
+// Perform the update
+async function performUpdate() {
+    if (!updateInfo || !updateInfo.downloadUrl) {
+        showStatus('No update information available', 'error');
+        return;
+    }
+
+    const updateBtn = document.getElementById('updateBtn');
+    updateBtn.disabled = true;
+
+    showStatus(`Downloading ${updateInfo.latestVersion}...`, 'info');
+
+    try {
+        const result = await window.go.main.App.PerformUpdate(updateInfo.downloadUrl);
+        if (result) {
+            showStatus('Update installed! Restarting...', 'success');
+        }
+    } catch (err) {
+        showStatus('Update failed: ' + err, 'error');
+        updateBtn.disabled = false;
+    }
+}
 
 // Select Excel file
 async function selectExcel() {
