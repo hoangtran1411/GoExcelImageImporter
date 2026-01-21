@@ -1,62 +1,62 @@
 # 🎓 Learning & Interview Guide
 
-Tài liệu này giúp bạn tổng hợp kiến thức từ project **ImageToExcel Importer** và chuẩn bị cho các buổi phỏng vấn Golang/Backend.
+This document helps you synthesize knowledge from the **ImageToExcel Importer** project and prepare for Golang/Backend interviews.
 
-## 🧠 Core Concepts (Kiến thức Cốt lõi)
+## 🧠 Core Concepts
 
-### 1. Concurrency (Đa luồng)
-Project sử dụng mô hình **Worker Pool** để xử lý ảnh.
-- **Tại sao dùng Worker Pool?** Để kiểm soát số lượng Goroutines chạy đồng thời. Nếu tạo 1 Goroutine cho mỗi file ảnh (ví dụ 10,000 ảnh), hệ thống sẽ bị quá tải (thrashing) và tốn RAM.
-- **Channels**: Dùng `jobs channel` để gửi task và `results channel` để nhận kết quả. Đây là mô hình "Fan-out / Fan-in".
-- **Synchronization**: Dùng `sync.WaitGroup` để chờ tất cả workers hoàn thành trước khi đóng channel kết quả.
+### 1. Concurrency
+The project uses the **Worker Pool** pattern to process images.
+- **Why Worker Pool?**: To control the number of concurrent Goroutines. If you create one Goroutine for every image file (e.g., 10,000 images), the system will suffer from thrashing and run out of RAM.
+- **Channels**: Uses a `jobs channel` to send tasks and a `results channel` to receive results. This is the "Fan-out / Fan-in" pattern.
+- **Synchronization**: Uses `sync.WaitGroup` to wait for all workers to complete before closing the result channel.
 
-### 2. Memory Management (Quản lý bộ nhớ)
-- **Streaming Excel**: Sử dụng `rows.Next()` của thư viện `excelize` thay vì đọc toàn bộ file vào RAM. Điều này giúp xử lý file Excel hàng triệu dòng mà RAM vẫn ổn định.
-- **Lazy Loading**: Chỉ load decode config của ảnh (`image.DecodeConfig`) để lấy kích thước trước khi load toàn bộ pixel data.
+### 2. Memory Management
+- **Streaming Excel**: Uses `rows.Next()` from the `excelize` library instead of reading the entire file into RAM. This allows processing Excel files with millions of rows while keeping memory usage stable.
+- **Lazy Loading**: Only loads the image decode config (`image.DecodeConfig`) to get dimensions before loading the full pixel data.
 
 ### 3. Application Architecture
-- **Wails Framework**: Kết hợp sức mạnh của Go (Backend performance) và Web Tech (Frontend UI).
-- **Frontend-Backend Bridge**: Giao tiếp bất đồng bộ qua JSON bridge.
+- **Wails Framework**: Combines the power of Go (Backend performance) and Web Tech (Frontend UI).
+- **Frontend-Backend Bridge**: Asynchronous communication via a JSON bridge.
 
 ---
 
-## 🎤 Interview Questions (Câu hỏi Phỏng vấn)
+## 🎤 Interview Questions
 
-Dưới đây là các câu hỏi nhà tuyển dụng có thể hỏi dựa trên project này:
+Here are questions recruiters might ask based on this project:
 
 ### Level: Junior / Fresher
 
-**Q1: Tại sao bạn chọn Go cho project này thay vì Python hay C#?**
-> *Gợi ý:* Go có tốc độ khởi động nhanh, compile ra native binary nhỏ gọn (không cần runtime nặng như .NET/JVM), và đặc biệt là mô hình Concurrency (Goroutines) rất mạnh mẽ để xử lý I/O bound tasks (đọc/ghi file ảnh) và CPU bound tasks (nén ảnh) cùng lúc.
+**Q1: Why did you choose Go for this project instead of Python or C#?**
+> *Hint:* Go has fast startup times, compiles to a compact native binary (no heavy runtime like .NET/JVM required), and especially its Concurrency model (Goroutines) is very powerful for handling I/O bound tasks (reading/writing image files) and CPU bound tasks (image compression) simultaneously.
 
-**Q2: Làm sao để đảm bảo thread-safe khi ghi vào file Excel?**
-> *Gợi ý:* Thư viện `excelize` không an toàn tuyệt đối khi ghi song song. Trong project này, tôi dùng pattern "Single Consumer": Nhiều workers xử lý ảnh song song, nhưng kết quả được đẩy vào 1 channel duy nhất. Channel này được 1 loop (main thread) đọc và ghi vào Excel tuần tự. Điều này loại bỏ race conditions mà không cần dùng Mutex phức tạp.
+**Q2: How do you ensure thread-safety when writing to the Excel file?**
+> *Hint:* The `excelize` library is not strictly thread-safe for parallel writes. In this project, I utilize the "Single Consumer" pattern: Multiple workers process images in parallel, but results are pushed to a single channel. This channel is consumed by a single loop (main thread) that writes to Excel sequentially. This eliminates race conditions without needing complex Mutexes.
 
-**Q3: `defer` hoạt động như thế nào? Tại sao dùng `defer wg.Done()`?**
-> *Gợi ý:* `defer` đẩy hàm vào stack và thực thi theo thứ tự LIFO khi hàm bao quanh return. Dùng `defer wg.Done()` đảm bảo rằng dù worker có bị panic hay return sớm ở đâu, `WaitGroup` vẫn được giảm đếm, tránh deadlock (treo chương trình mãi mãi).
+**Q3: How does `defer` work? Why use `defer wg.Done()`?**
+> *Hint:* `defer` pushes a function onto a stack to be executed in LIFO order when the surrounding function returns. Using `defer wg.Done()` ensures that even if a worker panics or returns early, the `WaitGroup` counter is still decremented, preventing deadlocks (program hanging forever).
 
 ### Level: Mid / Senior
 
-**Q4: Bạn xử lý việc cập nhật UI (Progress Bar) từ Backend Go như thế nào trong Wails?**
-> *Gợi ý:* Wails cung cấp cơ chế `EventsEmit`. Từ Go backend, tôi emit sự kiện kềm số % tiến độ. Frontend lắng nghe sự kiện này (`runtime.EventsOn`) và update DOM. Đây là mô hình Event-Driven, giúp decouple logic backend và giao diện.
+**Q4: How do you handle UI updates (Progress Bar) from the Go Backend in Wails?**
+> *Hint:* Wails provides an `EventsEmit` mechanism. From the Go backend, I emit an event containing the percentage progress. The Frontend listens for this event (`runtime.EventsOn`) and updates the DOM. This is an Event-Driven model, helping decouple backend logic from the interface.
 
-**Q5: Nếu file Excel có 1 triệu dòng, project hiện tại có xử lý được không? Có bị OOM (Out Of Memory) không?**
-> *Gợi ý:* Có thể xử lý được nhờ dùng `Iterator` (`rows.Next()`) lấy từng dòng một thay vì `GetRows()` load cả cục. Tuy nhiên, map `productMap` lưu mã sản phẩm vẫn nằm trong RAM. Với 1 triệu dòng, map này tốn khoảng vài chục đến trăm MB RAM, vẫn nằm trong giới hạn cho phép của máy tính hiện đại. Nếu cần tối ưu hơn, có thể dùng database nhẹ (SQLite/BadgerDB) thay vì map in-memory.
+**Q5: If the Excel file has 1 million rows, can the current project handle it? Will it OOM (Out Of Memory)?**
+> *Hint:* It can handle it thanks to using the `Iterator` (`rows.Next()`) to fetch one row at a time instead of `GetRows()` which loads the whole block. However, the `productMap` storing product codes still resides in RAM. With 1 million rows, this map might consume tens to hundreds of MB of RAM, which is still within acceptable limits for modern computers. For further optimization, a lightweight embedded database (SQLite/BadgerDB) could replace the in-memory map.
 
-**Q6: Làm sao để tối ưu hóa tốc độ build Docker/CI cho project Go?**
-> *Gợi ý:* Sử dụng Cache cho `go mod download` và `go build` (như đã config trong GitHub Actions `setup-go` với `cache: true`). Dùng multi-stage build trong Dockerfile (build ở stage 1, copy binary sang alpine/scratch ở stage 2) để giảm kích thước image.
+**Q6: How do you optimize Docker/CI build speed for a Go project?**
+> *Hint:* Use Cache for `go mod download` and `go build` (as configured in GitHub Actions `setup-go` with `cache: true`). Use multi-stage builds in the Dockerfile (build in stage 1, copy binary to alpine/scratch in stage 2) to reduce image size.
 
-**Q7: Bạn thiết kế tính năng Auto-Update như thế nào để an toàn?**
-> *Gợi ý:*
-> 1. Check checksum/hash của file tải về (hiện tại project chưa làm, là điểm cần cải thiện).
-> 2. Sử dụng cơ chế thay thế nguyên tử (atomic replacement) hoặc script batch đệm để tránh lỗi "file đang sử dụng" trên Windows.
-> 3. Versioning rõ ràng (Semantic Versioning) và inject version lúc build bằng `ldflags` để tránh hardcode sai sót.
+**Q7: How do you design the Auto-Update feature securely?**
+> *Hint:*
+> 1. Check checksum/hash of the downloaded file (currently a point for improvement).
+> 2. Use atomic replacement mechanisms or a batch script buffer to avoid "file in use" errors on Windows.
+> 3. Clear Versioning (Semantic Versioning) and inject version at build time using `ldflags` to avoid hardcoding errors.
 
 ---
 
-## 📚 Bài tập mở rộng (Challenge)
+## 📚 Extended Challenges
 
-Để nắm chắc kiến thức, hãy thử tự thực hiện các task sau:
-1. **Thêm Checksum Validation**: Khi tải update về, kiểm tra mã SHA256 xem có khớp với file trên GitHub Release không.
-2. **Stop/Resume**: Thêm nút "Pause" để tạm dừng worker pool và nút "Resume" để chạy tiếp.
-3. **Benchmarking**: Viết benchmark so sánh tốc độ xử lý khi dùng `WorkerCount = 1` vs `WorkerCount = 10`.
+To master the concepts, try implementing the following tasks yourself:
+1. **Add Checksum Validation**: Verify the SHA256 hash of the downloaded update against the file on GitHub Release.
+2. **Stop/Resume**: Add a "Pause" button to temporarily stop the worker pool and a "Resume" button to continue.
+3. **Benchmarking**: Write benchmarks comparing processing speed when using `WorkerCount = 1` vs `WorkerCount = 10`.

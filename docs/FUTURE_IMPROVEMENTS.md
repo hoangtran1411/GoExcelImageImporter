@@ -1,29 +1,29 @@
-# Kế hoạch phát triển và Cải thiện (Roadmap)
+# Roadmap and Future Improvements
 
-Tài liệu này ghi lại các ý tưởng và kế hoạch để nâng cấp ứng dụng **Golang Excel Image Importer**.
+This document records ideas and plans for upgrades to the **Go Excel Image Importer** application.
 
-## 🚀 Các tính năng ưu tiên (High Priority)
+## 🚀 Priority Features (High Priority)
 
-1.  **[x] Hỗ trợ nhiều định dạng hơn:** Thêm hỗ trợ cho file `.webp`.
-2.  **Xem trước (Preview):** Cho phép xem trước danh sách các mã sản phẩm không tìm thấy ảnh trước khi chạy.
-3.  **[x] Tùy chỉnh kích thước ảnh:** Cho phép người dùng nhập kích thước ô Excel hoặc kích thước ảnh mong muốn trực tiếp từ GUI.
-4.  **[x] Logging:** Xuất file log (`_missing.log`) cho các trường hợp mã sản phẩm bị thiếu.
+1.  **[x] Support More Formats**: Added support for `.webp` files.
+2.  **Preview**: Allow previewing the list of product codes with missing images before running the process.
+3.  **[x] Custom Image Size**: Allow users to input Excel cell dimensions or desired image size directly from the GUI.
+4.  **[x] Logging**: Export a log file (`_missing.log`) for product codes that were not found.
 
-## 🛠️ Cải tiến kỹ thuật (Technical Improvements)
+## 🛠️ Technical Improvements
 
-- [x] **Unit Tests:** Bổ sung thêm test case cho `internal/engine` (đặc biệt là logic mapping và scaling).
-- [x] **Concurrency Tuning:** Cho phép người dùng điều chỉnh số lượng "Workers" từ giao diện để tối ưu theo cấu hình máy.
-- [x] **Wails Migration:** Chuyển đổi từ Fyne sang Wails để có giao diện đẹp và nhẹ hơn.
-- [x] **Auto Update:** Tích hợp cơ chế tự động cập nhật qua GitHub Releases.
-- [x] **CI/CD:** Thiết lập GitHub Actions để tự động build file `.exe` mỗi khi có release mới.
+- [x] **Unit Tests**: Add more test cases for `internal/engine` (especially mapping and scaling logic).
+- [x] **Concurrency Tuning**: Allow users to adjust the number of "Workers" from the interface to optimize for their machine's configuration.
+- [x] **Wails Migration**: Migrated from Fyne to Wails for a more beautiful and lightweight interface.
+- [x] **Auto Update**: Integrated automatic update mechanism via GitHub Releases.
+- [x] **CI/CD**: Setup GitHub Actions to automatically build `.exe` files for new releases.
 
-## 🎨 Giao diện (GUI Enhancements)
+## 🎨 GUI Enhancements
 
-- **[x] Dark Mode:** Giao diện tối hiện đại, dễ nhìn.
-- **[x] Biểu tượng (Icon):** Ứng dụng có icon riêng và giao diện chuyên nghiệp.
-- **[x] Cải thiện thanh tiến trình (Progress Bar):** Hiển thị chi tiết phần trăm và trạng thái.
-- **[x] Responsive UI:** Giao diện tự động co giãn phù hợp kích thước cửa sổ.
+- **[x] Dark Mode**: Modern, eye-friendly dark interface.
+- **[x] Icons**: Custom application icon and professional look.
+- **[x] Improved Progress Bar**: Displays detailed percentage and status.
+- **[x] Responsive UI**: Interface automatically adapts to window size.
 
-## 📚 Tài liệu lưu trữ
-- `ARCHITECTURE.md`: Mô tả chi tiết cấu trúc code Wails.
-- `.agent/skills/`: Bộ kỹ năng phát triển, test và performance patterns tái sử dụng.
+## 📚 Archived Documentation
+- `ARCHITECTURE.md`: Detailed description of the Wails code structure.
+- `.agent/skills/`: Reusable development skills, testing, and performance patterns.

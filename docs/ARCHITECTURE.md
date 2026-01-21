@@ -1,47 +1,47 @@
-# Cấu trúc dự án (Project Architecture)
+# Project Architecture
 
-Dự án được tổ chức theo mô hình **Wails Architecture**, kết hợp giữa Go (Backend) và Web Technologies (Frontend).
+The project is organized following the **Wails Architecture**, combining Go (Backend) with Web Technologies (Frontend).
 
-## 🏗️ Sơ đồ cấu trúc
+## 🏗️ Structure Diagram
 
 ```text
 ImageToExcel/
-├── main.go               # Wails Entry point, cấu hình cửa sổ
-├── app.go                # Backend Logic (Exposed methods cho JS)
-├── wails.json            # File cấu hình dự án Wails
-├── frontend/             # Giao diện người dùng
-│   └── dist/             # HTML/CSS/JS Assets (được embed vào binary)
+├── main.go               # Wails Entry point, window configuration
+├── app.go                # Backend Logic (Methods exposed to JS)
+├── wails.json            # Wails project configuration
+├── frontend/             # User Interface
+│   └── dist/             # HTML/CSS/JS Assets (embedded into binary)
 │       ├── index.html
 │       ├── style.css
 │       └── app.js
-├── internal/             # Code logic sâu (Core Business Logic)
-│   └── engine/           # Xử lý logic nghiệp vụ
-│       ├── processor.go  # mapping Excel, worker pool, chèn ảnh
+├── internal/             # Core Business Logic
+│   └── engine/           # Processing Logic
+│       ├── processor.go  # Excel mapping, worker pool, image insertion
 │       └── processor_test.go
-├── build/                # Thư mục chứa file build output
-└── go.mod                # Quản lý dependencies (Go)
+├── build/                # Build output directory
+└── go.mod                # Dependency management (Go)
 ```
 
-## ⚙️ Luồng xử lý chính (Main Flow)
+## ⚙️ Main Flow
 
-1.  **Frontend (JS)**: Người dùng tương tác với giao diện HTML/CSS. Khi nhấn "Start", JS gọi method `Process()` được expose từ Backend.
-2.  **Bridge**: Wails Bridge chuyển lời gọi từ JS sang Go method `Process` trong `app.go`.
-3.  **App Logic**: `app.go` nhận cấu hình, khởi tạo `Processor` từ `internal/engine`.
+1.  **Frontend (JS)**: Users interact with the HTML/CSS interface. When "Start" is clicked, JS calls the `Process()` method exposed by the Backend.
+2.  **Bridge**: The Wails Bridge routes the call from JS to the Go method `Process` in `app.go`.
+3.  **App Logic**: `app.go` receives the configuration and initializes the `Processor` from `internal/engine`.
 4.  **Processor Phase**:
-    - **Mapping**: Đọc cột mã sản phẩm từ Excel -> Map.
-    - **Dispatching**: Quét thư mục ảnh, tạo Jobs.
-    - **Workers**: Xử lý ảnh song song (Scaling, Decode).
-    - **Collection**: Gom kết quả và chèn vào Excel (Single Thread safe).
-5.  **Feedback**: Trong quá trình, Backend gửi event `progress` ngược lại Frontend. Khi hoàn tất, Frontend hiển thị **Toast Notification** thông báo kết quả chi tiết.
+    - **Mapping**: Reads the product code column from Excel -> Map.
+    - **Dispatching**: Scans the image directory and creates Jobs.
+    - **Workers**: Processes images in parallel (Scaling, Decoding).
+    - **Collection**: Collects results and inserts them into Excel (Single Thread safe).
+5.  **Feedback**: During the process, the Backend emits `progress` events back to the Frontend. Upon completion, the Frontend displays a **Toast Notification** with detailed results.
 
 ## 🔄 Auto Update Mechanism
 
-Hệ thống cập nhật tự động hoạt động như sau:
-1.  **Check**: Khi khởi động, Backend gọi GitHub API kiểm tra latest release.
-2.  **Notify**: Nếu có phiên bản mới, gửi tín hiệu cho Frontend hiển thị nút Update.
-3.  **Update Action**: Người dùng nhấn Update -> Backend tải file `.exe` mới về thư mục tạm.
-4.  **Swap**: Chạy script batch đệm để: Tắt app hiện tại -> Xóa exe cũ -> Move exe mới vào vị trí -> Chạy app mới.
+The auto-update system works as follows:
+1.  **Check**: On startup, the Backend calls the GitHub API to check for the latest release.
+2.  **Notify**: If a new version exists, it signals the Frontend to show the Update button.
+3.  **Update Action**: User clicks Update -> Backend downloads the new `.exe` to a temporary folder.
+4.  **Swap**: Runs a batch script to: Kill current app -> Delete old exe -> Move new exe to position -> Run new app.
 
-## 🔒 Lưu ý Kỹ thuật
-- **Wails Bridge**: Giao tiếp giữa JS và Go là bất đồng bộ (Promise-based).
-- **Concurrency**: Sử dụng Goroutines cho việc xử lý ảnh nặng, nhưng ghi file Excel phải tuần tự.
+## 🔒 Technical Notes
+- **Wails Bridge**: Communication between JS and Go is asynchronous (Promise-based).
+- **Concurrency**: Goroutines are used for heavy image processing, but writing to the Excel file must be sequential.

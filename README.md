@@ -1,104 +1,111 @@
-# Golang Excel Image Importer
+# Go Excel Image Importer
 
-Một công cụ hiệu chỉnh Excel mạnh mẽ được viết bằng Go và Wails, giúp tự động chèn hình ảnh vào bảng tính dựa trên mã sản phẩm. Công cụ này kết hợp sức mạnh xử lý của Go với giao diện hiện đại của Web (HTML/CSS/JS).
+A powerful Excel manipulation tool built with **Go** and **Wails**, designed to automatically insert images into spreadsheets based on product codes. This tool combines the raw processing power of Go with a modern, responsive Web interface (HTML/CSS/JS).
 
-## ✨ Tính năng nổi bật
+---
 
-- **🚀 Hiệu suất vượt trội:** Backend Go xử lý ảnh và Excel cực nhanh với Worker Pool.
-- **🎨 Giao diện hiện đại:** Dark Mode cao cấp, **Toast Notification** mượt mà & Responsive.
-- **� Auto Update:** Tự động kiểm tra và cập nhật phiên bản mới nhất từ GitHub Releases.
-- **�💾 Tối ưu bộ nhớ:** Stream dữ liệu Excel để xử lý file lớn mà không tốn nhiều RAM.
-- **🔍 Tìm kiếm thông minh:** Tự động khớp tên file ảnh với mã sản phẩm linh hoạt.
-- **📦 Nhẹ và Nhanh:** Ứng dụng Wails sử dụng WebView2 có sẵn trên Windows, file thực thi nhỏ gọn (~10MB).
+## ✨ Key Features
 
-## 🛠️ Công nghệ sử dụng
+- **🚀 High Performance**: Go backend processes images and Excel files extremely fast using Worker Pools.
+- **🎨 Modern UI**: Premium Dark Mode, smooth **Toast Notifications**, and fully responsive design.
+- **🔄 Auto Update**: Automatically checks for and installs the latest versions from GitHub Releases.
+- **💾 Memory Optimized**: Streams Excel data to handle large files without excessive RAM usage.
+- **🔍 Smart Search**: Flexible matching of image filenames to product codes in the spreadsheet.
+- **📦 Lightweight**: Native Windows application (~10MB) leveraging the built-in WebView2 runtime.
 
-- **Backend:** [Go (Golang)](https://golang.org/)
-- **Framework:** [Wails v2](https://wails.io/)
-- **Frontend:** HTML, CSS (Custom Premium Theme), JavaScript
-- **Thư viện Excel:** [Excelize v2](https://github.com/xuri/excelize)
+## 🛠️ Built With
 
-## 💻 Sự tương thích & Yêu cầu hệ thống
+*   [![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)](https://golang.org/)
+*   [![Wails](https://img.shields.io/badge/Wails-E34F26?style=for-the-badge&logo=wails&logoColor=white)](https://wails.io/)
+*   [![Excelize](https://img.shields.io/badge/Excelize-217346?style=for-the-badge&logo=microsoft-excel&logoColor=white)](https://github.com/xuri/excelize)
+*   [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+*   [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
+*   [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
 
-Công cụ này được tối ưu hóa cho môi trường Windows. Dưới đây là chi tiết về khả năng tương thích:
+## 💻 Compatibility & Requirements
 
-### Hệ điều hành hỗ trợ
-| Phiên bản | Trạng thái | Ghi chú |
+This tool is optimized for **Windows**.
+
+| OS Version | Status | Notes |
 | :--- | :--- | :--- |
-| **Windows 11** | ✅ Tốt nhất | Hoạt động hoàn hảo, WebView2 đã có sẵn. |
-| **Windows 10** | ✅ Tốt nhất | Hoạt động hoàn hảo, WebView2 thường đã có sẵn (hoặc qua Windows Update). |
-| **Windows 7 / 8 / 8.1** | ⚠️ Hạn chế | Yêu cầu cài đặt [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) bản dành cho Win 7/8. Microsoft đã ngừng hỗ trợ chính thức. |
-| **Windows Server** | ✅ Hỗ trợ | Hoạt động tốt trên Windows Server 2016 trở lên (cần WebView2). |
+| **Windows 11** | ✅ Best | Works perfectly (WebView2 included). |
+| **Windows 10** | ✅ Best | Works perfectly (WebView2 usually included). |
+| **Windows 7 / 8** | ⚠️ Limited | Requires manual installation of [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/). |
+| **Windows Server** | ✅ Supported | Supported on 2016+ (requires WebView2). |
 
-### Yêu cầu phần mềm & Phần cứng
-- **Kiến trúc:** Windows 64-bit (x64) là bắt buộc.
-- **WebView2:** Yếu tố then chốt để hiển thị giao diện.
-- **RAM:** Tối thiểu 2GB (Khuyến nghị 4GB+ để xử lý mượt mà hàng nghìn ảnh).
-- **Bộ nhớ:** Khoảng 50MB cho ứng dụng và file tạm.
+### Hardware Requirements
+- **Architecture**: Windows 64-bit (x64) is required.
+- **RAM**: Minimum 2GB (4GB+ recommended for processing thousands of images).
 
-### Dành cho nhà phát triển (Build từ nguồn)
-- **Go:** 1.20 trở lên (Project đang dùng 1.25.5).
-- **Wails CLI:** Chạy lệnh `go install github.com/wailsapp/wails/v2/cmd/wails@latest`.
+## 🚀 Installation & Setup
 
-### Cài đặt Wails CLI
-```bash
-go install github.com/wailsapp/wails/v2/cmd/wails@latest
-```
+### Prerequisites
+- [Go](https://go.dev/dl/) (v1.20+)
+- [Wails CLI](https://wails.io/docs/gettingstarted/installation):
+  ```bash
+  go install github.com/wailsapp/wails/v2/cmd/wails@latest
+  ```
 
-### Cài đặt và Chạy dự án
-1. Clone dự án:
+### Development
+1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd ImageToExcel
+   git clone https://github.com/hoangtran1411/GoExcelImageImporter.git
+   cd GoExcelImageImporter
    ```
-
-2. Cài đặt dependencies và chạy Dev Mode:
+2. **Run in Dev Mode**:
    ```bash
    wails dev
    ```
-   Lệnh này sẽ tự động cài đặt Go modules và Frontend assets, sau đó mở ứng dụng.
+   This will install dependencies, build the frontend, and launch the application.
 
-### 🔨 Build bản Release
-Để tạo file `.exe` cho Windows:
+### Build via Release
+To generate the `.exe` file for distribution:
 ```bash
 wails build
 ```
-File thực thi sẽ nằm trong thư mục `build/bin/`.
+The output file will be located in `build/bin/`.
 
-## 🧪 Unit Testing & Makefile
-Dự án đạt độ phủ code (test coverage) > 80% cho phần lõi xử lý.
+## 📖 Usage Guide
+
+1.  **Select Excel File**: Choose the source Excel file containing your product list.
+2.  **Select Image Folder**: Choose the folder containing your product images (supports .jpg, .png, .webp).
+3.  **Configuration**:
+    *   **Sheet Name**: Select the target sheet.
+    *   **Code Column**: The column containing product codes (e.g., A).
+    *   **Image Column**: The column where images should be inserted (e.g., F).
+    *   **Dimensions**: Adjust Row Height and Column Width.
+4.  **Start**: Click **Start Processing** and watch the progress.
+
+## 🧪 Testing
+
+The core logic has >80% test coverage.
 
 ```bash
-# Chạy Unit Test
+# Run Unit Tests
 go test ./... -v
 
-# Nếu có 'make' (Windows cài qua Chocolatey/Scoop hoặc dùng Git Bash)
+# Or using Makefile (if available)
 make test
 ```
 
-## 📖 Hướng dẫn sử dụng
+## 🤝 Contributing
 
-1. **Chọn file Excel:** Chọn file nguồn chứa danh sách dữ liệu.
-2. **Chọn thư mục ảnh:** Chọn thư mục chứa ảnh (hỗ trợ .jpg, .png, .webp...).
-3. **Cấu hình:**
-   - **Sheet Name:** Chọn Sheet cần xử lý.
-   - **Cột Mã:** Cột chứa mã sản phẩm (VD: A).
-   - **Cột Ảnh:** Cột đích để chèn ảnh (VD: F).
-   - **Kích thước:** Điều chỉnh chiều cao dòng và độ rộng cột.
-4. **Bắt đầu:** Nhấn **Start Processing** và theo dõi tiến trình.
+We welcome contributions! Please iterate through our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on code style, formatting, and the pull request process.
 
-## 📂 Cấu trúc thư mục
+## 📂 Project Structure
 
-- `main.go`: Cấu hình cửa sổ và Wails entry.
-- `app.go`: Backend logic (Go methods exposed to JS).
-- `frontend/`: Mã nguồn giao diện (HTML/CSS/JS).
-- `internal/engine`: Core logic xử lý Excel và Ảnh.
-- `wails.json`: Cấu hình dự án Wails.
-- `build/`: Thư mục chứa file thực thi sau khi build.
+- `main.go`: Wails entry point and window configuration.
+- `app.go`: Backend logic exposed to the frontend.
+- `frontend/`: UI source code (HTML/CSS/JS).
+- `internal/engine`: Core logic for Image and Excel processing.
+- `wails.json`: Wails project configuration.
+- `docs/`: Additional documentation (Architecture, Roadmap).
 
-## 📝 Roadmap & Cải thiện
-Xem thư mục `docs/` để biết thêm chi tiết.
+## 📝 Documentation
+For more details on the internal workings and future plans, check the [docs/](docs/) folder:
+- [Architecture](docs/ARCHITECTURE.md)
+- [Future Improvements](docs/FUTURE_IMPROVEMENTS.md)
+- [Learning Notes](docs/LEARNING.md)
 
 ---
-Phát triển bởi [Antigravity]
-Khởi tạo vào tháng 1/2026.
+Created by [Antigravity] - January 2026.
