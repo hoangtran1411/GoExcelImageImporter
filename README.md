@@ -108,4 +108,12 @@ For more details on the internal workings and future plans, check the [docs/](do
 - [Learning Notes](docs/LEARNING.md)
 
 ---
-Created by [Antigravity] - January 2026.
+## 📜 License
+
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/hoangtran1411">Hoang Tran</a>
+</p>
