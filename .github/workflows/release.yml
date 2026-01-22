@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write # Required to create releases
 
+env:
+  GO_VERSION: '1.25'
+  NODE_VERSION: '22'
+  WAILS_VERSION: 'v2.11.0'
+
 jobs:
   release:
     runs-on: windows-latest
@@ -18,20 +23,20 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.25.5'
+        go-version: ${{ env.GO_VERSION }}
         check-latest: true
         cache: true
 
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
-        node-version: '22'
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Run Unit Tests
       run: go test -v ./internal/engine ./
 
     - name: Install Wails
-      run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
     - name: Build Windows EXE
       # Build without debug symbols (-s -w) and inject version from tag
