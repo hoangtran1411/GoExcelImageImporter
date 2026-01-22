@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -119,7 +120,7 @@ func parseVersion(v string) [3]int {
 
 	for i := 0; i < len(parts) && i < 3; i++ {
 		// Parse integer, ignore errors (defaults to 0)
-		fmt.Sscanf(parts[i], "%d", &result[i])
+		result[i], _ = strconv.Atoi(parts[i])
 	}
 	return result
 }

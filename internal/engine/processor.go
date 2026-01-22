@@ -186,7 +186,7 @@ func (p *Processor) Run(ctx context.Context) error {
 	// 6. Write log for missing codes
 	if len(p.MissingCodes) > 0 {
 		logPath := fmt.Sprintf("%s_missing_%s.log", strings.TrimSuffix(p.ExcelPath, filepath.Ext(p.ExcelPath)), timestamp)
-		os.WriteFile(logPath, []byte(strings.Join(p.MissingCodes, "\n")), 0644)
+		_ = os.WriteFile(logPath, []byte(strings.Join(p.MissingCodes, "\n")), 0644)
 	}
 
 	return nil
@@ -218,7 +218,7 @@ func (p *Processor) loadImageData(path string) ([]byte, int, int, error) {
 		return nil, 0, 0, err
 	}
 
-	imgFile.Seek(0, 0)
+	_, _ = imgFile.Seek(0, 0)
 	imgBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, 0, 0, err
@@ -232,8 +232,8 @@ func (p *Processor) insertImageToExcel(res Result) error {
 	cellName, _ := excelize.CoordinatesToCellName(colIdx, res.Job.RowIndex)
 
 	// Set Row Height and Col Width from Processor settings
-	p.f.SetRowHeight(p.SheetName, res.Job.RowIndex, p.RowHeight)
-	p.f.SetColWidth(p.SheetName, p.ImageCol, p.ImageCol, p.ColWidth)
+	_ = p.f.SetRowHeight(p.SheetName, res.Job.RowIndex, p.RowHeight)
+	_ = p.f.SetColWidth(p.SheetName, p.ImageCol, p.ImageCol, p.ColWidth)
 
 	// Calculate scale to fit. Default rowHeight 105pt is ~140px. colWidth 20 is ~145px
 	// We'll use a margin of 10px

@@ -282,7 +282,48 @@ See `examples/dark-theme.css` for a complete premium dark theme with:
 - Status messages
 - Smooth animations
 
+## Best Practices & Linting
+
+To ensure high code quality and pass common linters (like `golangci-lint`), follow these patterns:
+
+### 1. Handle All Errors
+Always check error return values. If you must ignore an error (e.g., in a background cleanup or UI adjustment), do so explicitly:
+```go
+// Good: Explicitly ignored
+_ = p.f.SetRowHeight(sheet, index, height)
+
+// Bad: Unchecked error (errcheck will fail)
+p.f.SetRowHeight(sheet, index, height)
+```
+
+### 2. Prefer strconv over fmt.Sscanf
+For simple integer or float parsing, use `strconv` instead of `fmt.Sscanf` to avoid complex error handling or unchecked lints:
+```go
+// Recommended
+val, _ := strconv.Atoi(str)
+
+// Discouraged (often triggers errcheck)
+fmt.Sscanf(str, "%d", &val)
+```
+
+### 3. File Operations
+Always handle errors for file I/O. Use `defer` for closing files immediately after opening.
+```go
+f, err := os.Open(path)
+if err != nil {
+    return err
+}
+defer f.Close()
+```
+
+### 4. Run Linters Locally
+Install and run `golangci-lint` before committing:
+```bash
+golangci-lint run ./...
+```
+
 ## Tips
+
 
 1. **Keep frontend simple**: For simple apps, use vanilla HTML/CSS/JS without bundlers
 2. **Use embed.FS**: Always embed frontend assets for single-binary distribution

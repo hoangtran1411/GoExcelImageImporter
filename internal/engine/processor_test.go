@@ -40,7 +40,7 @@ func createDummyExcel(path, sheetName, codeCol string, products []string) error 
 	// Write product codes
 	for i, p := range products {
 		cell := fmt.Sprintf("%s%d", codeCol, i+1) // Start from row 1
-		f.SetCellValue(sheetName, cell, p)
+		_ = f.SetCellValue(sheetName, cell, p)
 	}
 
 	return f.SaveAs(path)
@@ -57,7 +57,7 @@ func TestProcessor_Run(t *testing.T) {
 	// Paths
 	excelPath := filepath.Join(tempDir, "test.xlsx")
 	imageDir := filepath.Join(tempDir, "images")
-	os.Mkdir(imageDir, 0755)
+	_ = os.Mkdir(imageDir, 0755)
 
 	// Create dummy data
 	products := []string{"P001", "P002", "P003"}
@@ -67,8 +67,8 @@ func TestProcessor_Run(t *testing.T) {
 	}
 
 	// Create dummy images
-	createDummyImage(filepath.Join(imageDir, "P001.png"), 100, 100)
-	createDummyImage(filepath.Join(imageDir, "P002.jpg"), 200, 200) // Test jpg extension (even though content is png, go image decoder handles magic numbers)
+	_ = createDummyImage(filepath.Join(imageDir, "P001.png"), 100, 100)
+	_ = createDummyImage(filepath.Join(imageDir, "P002.jpg"), 200, 200) // Test jpg extension (even though content is png, go image decoder handles magic numbers)
 	// P003 is missing
 
 	// Initialize Processor
@@ -142,7 +142,7 @@ func TestProcessor_LoadImageData(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	imgPath := filepath.Join(tempDir, "test.png")
-	createDummyImage(imgPath, 50, 60)
+	_ = createDummyImage(imgPath, 50, 60)
 
 	p := &Processor{}
 	bytes, w, h, err := p.loadImageData(imgPath)
