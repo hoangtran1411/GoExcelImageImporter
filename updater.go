@@ -15,7 +15,7 @@ import (
 )
 
 // Current version - update this when releasing new versions, or use ldflags
-var CurrentVersion = "v2.0.6"
+var CurrentVersion = "v2.0.7"
 
 // GitHub repository info
 const (

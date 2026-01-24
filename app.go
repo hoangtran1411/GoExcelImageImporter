@@ -137,7 +137,7 @@ func (a *App) Process(config Config) ProcessResult {
 	}()
 
 	// Run processing
-	err := p.Run(context.Background())
+	err := p.Run(a.ctx)
 	if err != nil {
 		return ProcessResult{
 			Success: false,
