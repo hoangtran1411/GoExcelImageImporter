@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function CheckForUpdate():Promise<main.UpdateInfo>;
 
+export function GetCPUCount():Promise<number>;
+
 export function GetCurrentVersion():Promise<string>;
 
 export function GetSheets(arg1:string):Promise<Array<string>>;
