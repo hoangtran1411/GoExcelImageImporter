@@ -1,0 +1,40 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  # Enable specific linters
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  disable-all: true
+
+  # Linter specific settings
+  settings:
+    govet:
+      enable:
+        - shadow
+
+  # Exclusions configuration
+  exclusions:
+    # Use standard presets to filter common false positives
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+
+    # Exclude specific paths from linting
+    paths:
+      - ^build/
+      - ^frontend/
+      - ^docs/
+
+issues:
+  # Show all issues, do not limit
+  max-issues-per-linter: 0
+  max-same-issues: 0

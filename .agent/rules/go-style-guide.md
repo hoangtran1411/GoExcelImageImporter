@@ -15,7 +15,11 @@ This project is an **Excel image insertion utility** built with:
 
 ## Code Style
 
-- Format with `gofmt`/`goimports`. Run `golangci-lint run ./...` before commit.
+- Format with `gofmt`/`goimports`. Run `golangci-lint` (v2.8.0+) `run ./...` before commit.
+- **Linting Configuration**: MUST use `golangci-lint` v2 configuration schema (v2.8.x+). 
+  - Top-level `version: "2"` is mandatory.
+  - Use kebab-case for all linter settings.
+  - Exclusions move to `linters: exclusions: rules`.
 - Adhere to [Effective Go](https://go.dev/doc/effective_go) and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments).
 - Organize core processing logic in `internal/engine/`.
 - Keep Wails-specific code (`main.go`, `app.go`, `updater.go`) in the root package.
