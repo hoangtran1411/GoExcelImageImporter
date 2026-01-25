@@ -11,7 +11,7 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-  disable-all: true
+  default: none
 
   # Linter specific settings
   settings:
