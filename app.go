@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"imagetoexcel/internal/engine"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -182,7 +183,8 @@ func (a *App) OpenFileLocation(path string) error {
 		return fmt.Errorf("no file path provided")
 	}
 	// Use Windows explorer to show the file
-	return nil
+	cmd := exec.Command("explorer", "/select,", path)
+	return cmd.Start()
 }
 
 // GetCPUCount returns the number of logical CPUs

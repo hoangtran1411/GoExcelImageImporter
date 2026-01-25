@@ -7,6 +7,7 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,6 +48,7 @@ type Processor struct {
 	jobs           chan Job
 	results        chan Result
 	progressChan   chan float64
+	missingMu      sync.Mutex // Protects MissingCodes
 	MissingCodes   []string
 	ProcessedCount int // Number of successfully processed images
 }
@@ -64,7 +66,7 @@ func NewProcessor(excelPath, imageDir, codeCol, imageCol, sheetName string, work
 		productMap:   make(map[string]int),
 		jobs:         make(chan Job, 100),
 		results:      make(chan Result, 100),
-		MissingCodes: []string{},
+		MissingCodes: make([]string, 0, 100),
 	}
 }
 
@@ -107,7 +109,11 @@ func (p *Processor) Run(ctx context.Context) error {
 		}
 
 		rowIdx++
-		row, _ := rows.Columns()
+		row, err := rows.Columns()
+		if err != nil {
+			log.Printf("Warning: failed to read columns for row %d: %v", rowIdx, err)
+			continue
+		}
 		if len(row) > codeColIdx {
 			code := strings.TrimSpace(row[codeColIdx])
 			if code != "" {
@@ -128,15 +134,13 @@ func (p *Processor) Run(ctx context.Context) error {
 	}
 
 	// 3. Dispatcher: Scan images and send jobs
+	// 3. Dispatcher: Scan images and send jobs
 	go func() {
 		defer close(p.jobs)
 
 		files, err := os.ReadDir(p.ImageDir)
 		if err != nil {
-			// In a real app we might want to communicate this error to the main thread
-			// For now, we'll just log it to stdout as we can't easily propagate it to Run()
-			// without minimal structural changes (e.g. an error channel)
-			fmt.Println("Error reading image directory:", err)
+			log.Printf("Error reading image directory: %v", err)
 			return
 		}
 
@@ -173,7 +177,9 @@ func (p *Processor) Run(ctx context.Context) error {
 					return
 				}
 			} else {
+				p.missingMu.Lock()
 				p.MissingCodes = append(p.MissingCodes, code)
+				p.missingMu.Unlock()
 			}
 		}
 	}()
@@ -188,22 +194,23 @@ func (p *Processor) Run(ctx context.Context) error {
 	p.ProcessedCount = 0
 
 	// We'll update progress based on results received
+resultLoop:
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case res, ok := <-p.results:
 			if !ok {
-				goto Save // Results channel closed, finishing up
+				break resultLoop // Results channel closed, finishing up
 			}
 
 			if res.Err != nil {
-				fmt.Println("Error processing", res.Job.ProductCode, ":", res.Err)
+				log.Printf("Error processing %s: %v", res.Job.ProductCode, res.Err)
 				continue
 			}
 
 			if err := p.insertImageToExcel(res); err != nil {
-				fmt.Println("Error inserting", res.Job.ProductCode, ":", err)
+				log.Printf("Error inserting %s: %v", res.Job.ProductCode, err)
 				continue
 			}
 
@@ -218,7 +225,6 @@ func (p *Processor) Run(ctx context.Context) error {
 		}
 	}
 
-Save:
 	// 5. Save result
 	timestamp := time.Now().Format("20060102_150405")
 	outputName := fmt.Sprintf("%s_output_%s.xlsx", strings.TrimSuffix(p.ExcelPath, filepath.Ext(p.ExcelPath)), timestamp)
@@ -284,14 +290,20 @@ func (p *Processor) loadImageData(path string) ([]byte, int, int, error) {
 }
 
 func (p *Processor) insertImageToExcel(res Result) error {
-	colIdx, _ := excelize.ColumnNameToNumber(p.ImageCol)
-	cellName, _ := excelize.CoordinatesToCellName(colIdx, res.Job.RowIndex)
+	colIdx, err := excelize.ColumnNameToNumber(p.ImageCol)
+	if err != nil {
+		return fmt.Errorf("invalid image column '%s': %w", p.ImageCol, err)
+	}
+	cellName, err := excelize.CoordinatesToCellName(colIdx, res.Job.RowIndex)
+	if err != nil {
+		return fmt.Errorf("failed to get cell name: %w", err)
+	}
 
 	// Set Row Height and Col Width from Processor settings
-	if err := p.f.SetRowHeight(p.SheetName, res.Job.RowIndex, p.RowHeight); err != nil {
+	if err = p.f.SetRowHeight(p.SheetName, res.Job.RowIndex, p.RowHeight); err != nil {
 		return fmt.Errorf("failed to set row height: %w", err)
 	}
-	if err := p.f.SetColWidth(p.SheetName, p.ImageCol, p.ImageCol, p.ColWidth); err != nil {
+	if err = p.f.SetColWidth(p.SheetName, p.ImageCol, p.ImageCol, p.ColWidth); err != nil {
 		return fmt.Errorf("failed to set col width: %w", err)
 	}
 
@@ -308,7 +320,7 @@ func (p *Processor) insertImageToExcel(res Result) error {
 		scale = scaleY
 	}
 
-	err := p.f.AddPictureFromBytes(p.SheetName, cellName, &excelize.Picture{
+	err = p.f.AddPictureFromBytes(p.SheetName, cellName, &excelize.Picture{
 		Extension: filepath.Ext(res.Job.ImagePath),
 		File:      res.ImgBytes,
 		Format: &excelize.GraphicOptions{
