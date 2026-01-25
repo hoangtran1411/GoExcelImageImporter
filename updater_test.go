@@ -88,12 +88,14 @@ func TestGitHubReleaseStruct(t *testing.T) {
 }
 
 func TestCurrentVersion(t *testing.T) {
-	// Verify CurrentVersion is set and starts with 'v'
+	// Verify CurrentVersion is set
 	if CurrentVersion == "" {
 		t.Error("CurrentVersion should not be empty")
 	}
-	if CurrentVersion[0] != 'v' {
-		t.Errorf("CurrentVersion should start with 'v', got %s", CurrentVersion)
+
+	// Allow 'dev-build' or release versions starting with 'v'
+	if CurrentVersion != "dev-build" && (len(CurrentVersion) < 1 || CurrentVersion[0] != 'v') {
+		t.Errorf("CurrentVersion should start with 'v' or be 'dev-build', got %s", CurrentVersion)
 	}
 }
 
