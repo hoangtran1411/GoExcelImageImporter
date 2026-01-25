@@ -1,5 +1,6 @@
 // Global variable to store update info
 let updateInfo = null;
+let currentOutputPath = null;
 
 // Wait for Wails runtime to be ready
 document.addEventListener('DOMContentLoaded', function () {
@@ -144,6 +145,26 @@ async function loadSheets(excelPath) {
 
 // Start processing
 async function startProcess() {
+    // 1. Check if we are in "Open File" mode
+    if (currentOutputPath) {
+        try {
+            await window.go.main.App.OpenFileLocation(currentOutputPath);
+        } catch (err) {
+            showStatus('Could not open file: ' + err, 'error');
+        }
+
+        // Reset UI to initial state
+        currentOutputPath = null;
+        const btn = document.getElementById('processBtn');
+        btn.classList.remove('btn-success'); // Assuming you might add styling
+        btn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none"><path d="M8 5V19L19 12L8 5Z" fill="currentColor"/></svg>
+            Start Processing
+        `;
+        updateProgress(0);
+        return;
+    }
+
     const excelPath = document.getElementById('excelPath').value;
     const imageDir = document.getElementById('imageDir').value;
 
@@ -187,14 +208,22 @@ async function startProcess() {
 
 
 
+    let processingSuccess = false;
+
     try {
         const result = await window.go.main.App.Process(config);
 
         if (result.success) {
             showStatus('✓ ' + result.message, 'success');
+            processingSuccess = true;
 
             if (result.missingCodes && result.missingCodes.length > 0) {
                 console.log('Missing codes:', result.missingCodes);
+            }
+
+            // Store output path for the button action
+            if (result.outputPath) {
+                currentOutputPath = result.outputPath;
             }
         } else {
             showStatus('✗ ' + result.message, 'error');
@@ -204,13 +233,28 @@ async function startProcess() {
     } finally {
         // Reset button
         btn.disabled = false;
-        btn.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none"><path d="M8 5V19L19 12L8 5Z" fill="currentColor"/></svg>
-            Start Processing
-        `;
 
-        // Keep progress at 100% on success
-        updateProgress(100);
+        if (processingSuccess && currentOutputPath) {
+            // Change button to "Open Output File"
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Open Output File
+            `;
+            // Keep progress at 100%
+            updateProgress(100);
+        } else {
+            // Revert to "Start Processing" on failure
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none"><path d="M8 5V19L19 12L8 5Z" fill="currentColor"/></svg>
+                Start Processing
+            `;
+            // Only reset progress if failed? Or keep it? keeping logic simple
+            if (!processingSuccess) {
+                // Maybe keep progress to show it failed? But user might want to retry
+            }
+        }
     }
 }
 
