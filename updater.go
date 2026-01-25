@@ -14,8 +14,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// Current version - update this when releasing new versions, or use ldflags
-var CurrentVersion = "v2.1.0"
+// CurrentVersion is injected at build time via -ldflags
+var CurrentVersion = "dev-build"
 
 // GitHub repository info
 const (

@@ -15,6 +15,10 @@ build:
 build-windows:
 	wails build -platform windows/amd64
 
+# Build release with version injection (Usage: make build-release VERSION=v1.0.0)
+build-release:
+	wails build -platform windows/amd64 -ldflags "-s -w -X main.CurrentVersion=$(VERSION)"
+
 # Run unit tests
 test:
 	go test ./... -v
