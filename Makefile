@@ -47,4 +47,4 @@ lint:
 # Install dependencies
 deps:
 	go mod tidy
-	go install github.com/wailsapp/wails/v2/cmd/wails@latest
+	go install github.com/wailsapp/wails/v2/cmd/wails@2.11.0
