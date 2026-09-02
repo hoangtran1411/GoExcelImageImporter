@@ -1,23 +1,27 @@
 # Makefile for ImageToExcel Importer
 
-BINARY_NAME=ImageToExcel
+BINARY_NAME=tool_chen_anh
 BUILD_DIR=build/bin
 
-.PHONY: all build clean test coverage lint
+.PHONY: all build build-windows build-release dev test coverage clean fmt lint deps
 
 all: build
 
-# Build the application using Wails
+# Build the application using Wails v3
 build:
-	wails build
+	wails3 build
 
 # Build for Windows specifically (creates .exe)
 build-windows:
-	wails build -platform windows/amd64
+	wails3 task windows:build
 
 # Build release with version injection (Usage: make build-release VERSION=v1.0.0)
 build-release:
-	wails build -platform windows/amd64 -ldflags "-s -w -X main.CurrentVersion=$(VERSION)"
+	wails3 task windows:build VERSION=$(VERSION)
+
+# Run in development mode
+dev:
+	wails3 dev -config ./build/config.yml
 
 # Run unit tests
 test:
@@ -31,10 +35,11 @@ coverage:
 
 # Clean build artifacts
 clean:
-	rm -rf build/
+	rm -rf $(BUILD_DIR)/
 	rm -f coverage.out coverage.html
 	rm -f *.log
 	rm -f *_output_*.xlsx
+	rm -f *.syso
 
 # Format code
 fmt:
@@ -47,4 +52,4 @@ lint:
 # Install dependencies
 deps:
 	go mod tidy
-	go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
+	go install github.com/wailsapp/wails/v3/cmd/wails3@latest

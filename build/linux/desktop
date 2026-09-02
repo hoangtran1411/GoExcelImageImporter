@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Image to Excel Importer
+Comment=Image to Excel Importer
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/tool_chen_anh %u
+Terminal=false
+Type=Application
+Icon=tool_chen_anh
+Categories=Utility;
+StartupWMClass=tool_chen_anh
+
+ 
