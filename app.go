@@ -4,11 +4,7 @@ import (
 	"context"
 	"fmt"
 	"imagetoexcel/internal/engine"
-	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
-
 	stdruntime "runtime"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -37,23 +33,6 @@ func (a *App) ServiceStartup(ctx context.Context, _ application.ServiceOptions) 
 	return nil
 }
 
-func (a *App) getApp() *application.App {
-	if a.app != nil {
-		return a.app
-	}
-	return application.Get()
-}
-
-func (a *App) getContext() context.Context {
-	if a.ctx != nil {
-		return a.ctx
-	}
-	if a.app != nil {
-		return a.app.Context()
-	}
-	return context.Background()
-}
-
 // Config holds the processing configuration
 type Config struct {
 	ExcelPath   string  `json:"excelPath"`
@@ -78,8 +57,7 @@ type ProcessResult struct {
 
 // SelectExcelFile opens a file dialog to select an Excel file
 func (a *App) SelectExcelFile() (string, error) {
-	app := a.getApp()
-	dialog := app.Dialog.OpenFile()
+	dialog := a.app.Dialog.OpenFile()
 	dialog.SetTitle("Select Excel File")
 	dialog.AddFilter("Excel Files (*.xlsx)", "*.xlsx")
 	return dialog.PromptForSingleSelection()
@@ -87,8 +65,7 @@ func (a *App) SelectExcelFile() (string, error) {
 
 // SelectImageFolder opens a folder dialog to select the image directory
 func (a *App) SelectImageFolder() (string, error) {
-	app := a.getApp()
-	dialog := app.Dialog.OpenFile()
+	dialog := a.app.Dialog.OpenFile()
 	dialog.SetTitle("Select Image Folder")
 	dialog.CanChooseDirectories(true)
 	dialog.CanChooseFiles(false)
@@ -163,14 +140,13 @@ func (a *App) Process(config Config) ProcessResult {
 
 	// Send progress updates to frontend
 	go func() {
-		app := a.getApp()
 		for progress := range progressChan {
-			app.Event.Emit("progress", progress*100)
+			a.app.Event.Emit("progress", progress*100)
 		}
 	}()
 
 	// Run processing
-	err := p.Run(a.getContext())
+	err := p.Run(a.ctx)
 	if err != nil {
 		return ProcessResult{
 			Success: false,
@@ -178,35 +154,12 @@ func (a *App) Process(config Config) ProcessResult {
 		}
 	}
 
-	// Get output file path
-	outputPath := findOutputFile(config.ExcelPath)
-
 	return ProcessResult{
 		Success:      true,
 		Message:      fmt.Sprintf("Processing completed! %d images processed, %d missing", p.ProcessedCount, len(p.MissingCodes)),
 		MissingCodes: p.MissingCodes,
-		OutputPath:   outputPath,
+		OutputPath:   p.OutputPath,
 	}
-}
-
-// findOutputFile finds the most recent output file
-func findOutputFile(excelPath string) string {
-	dir := filepath.Dir(excelPath)
-	base := strings.TrimSuffix(filepath.Base(excelPath), filepath.Ext(excelPath))
-
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return ""
-	}
-
-	var latestFile string
-	for _, f := range files {
-		if strings.HasPrefix(f.Name(), base+"_output_") && strings.HasSuffix(f.Name(), ".xlsx") {
-			latestFile = filepath.Join(dir, f.Name())
-		}
-	}
-
-	return latestFile
 }
 
 // OpenFileLocation opens the file explorer to the output file location
