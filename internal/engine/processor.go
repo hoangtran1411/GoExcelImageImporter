@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"image"
@@ -50,9 +51,9 @@ type Processor struct {
 	jobs           chan Job
 	results        chan Result
 	progressChan   chan float64
-	missingMu      sync.Mutex // Protects MissingCodes
 	MissingCodes   []string
-	ProcessedCount int // Number of successfully processed images
+	ProcessedCount int    // Number of successfully processed images
+	OutputPath     string // Saved output file path
 }
 
 func NewProcessor(excelPath, imageDir, codeCol, imageCol, sheetName string, workerCount int, rowHeight, colWidth float64, startRow, endRow int) *Processor {
@@ -105,11 +106,8 @@ func (p *Processor) Run(ctx context.Context) error {
 
 	rowIdx := 0
 	for rows.Next() {
-		// Check for cancellation during row processing
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
+		if err := ctx.Err(); err != nil {
+			return err
 		}
 
 		rowIdx++
@@ -151,7 +149,6 @@ func (p *Processor) Run(ctx context.Context) error {
 	}
 
 	// 3. Dispatcher: Scan images and send jobs
-	// 3. Dispatcher: Scan images and send jobs
 	go func() {
 		defer close(p.jobs)
 
@@ -176,13 +173,6 @@ func (p *Processor) Run(ctx context.Context) error {
 
 		// Dispatch jobs and track missing
 		for code, rowIndex := range p.productMap {
-			// Check for cancellation
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
-
 			if fileName, ok := availableImages[code]; ok {
 				select {
 				case p.jobs <- Job{
@@ -194,9 +184,7 @@ func (p *Processor) Run(ctx context.Context) error {
 					return
 				}
 			} else {
-				p.missingMu.Lock()
 				p.MissingCodes = append(p.MissingCodes, code)
-				p.missingMu.Unlock()
 			}
 		}
 	}()
@@ -244,8 +232,8 @@ resultLoop:
 
 	// 5. Save result
 	timestamp := time.Now().Format("20060102_150405")
-	outputName := fmt.Sprintf("%s_output_%s.xlsx", strings.TrimSuffix(p.ExcelPath, filepath.Ext(p.ExcelPath)), timestamp)
-	if err := p.f.SaveAs(outputName); err != nil {
+	p.OutputPath = fmt.Sprintf("%s_output_%s.xlsx", strings.TrimSuffix(p.ExcelPath, filepath.Ext(p.ExcelPath)), timestamp)
+	if err := p.f.SaveAs(p.OutputPath); err != nil {
 		return fmt.Errorf("failed to save excel: %w", err)
 	}
 
@@ -286,19 +274,12 @@ func (p *Processor) worker(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (p *Processor) loadImageData(path string) ([]byte, int, int, error) {
-	imgFile, err := os.Open(path)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-	defer imgFile.Close()
-
-	imgConfig, _, err := image.DecodeConfig(imgFile)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-
-	_, _ = imgFile.Seek(0, 0)
 	imgBytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	imgConfig, _, err := image.DecodeConfig(bytes.NewReader(imgBytes))
 	if err != nil {
 		return nil, 0, 0, err
 	}

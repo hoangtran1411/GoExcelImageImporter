@@ -111,18 +111,10 @@ func TestProcessor_Run(t *testing.T) {
 	}
 
 	// Check output file
-	files, _ := os.ReadDir(tempDir)
-	outputFile := ""
-	for _, f := range files {
-		if filepath.Ext(f.Name()) == ".xlsx" && f.Name() != "test.xlsx" {
-			outputFile = filepath.Join(tempDir, f.Name())
-			break
-		}
+	if p.OutputPath == "" {
+		t.Fatal("Output file path not set on Processor")
 	}
-
-	if outputFile == "" {
-		t.Error("Output file not generated")
-	}
+	outputFile := p.OutputPath
 
 	// Verify output Excel content
 	f, err := excelize.OpenFile(outputFile)

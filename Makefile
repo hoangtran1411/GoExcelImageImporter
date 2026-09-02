@@ -21,7 +21,7 @@ build-release:
 
 # Run in development mode
 dev:
-	wails3 dev -config ./build/config.yml
+	-wails3 dev -config ./build/config.yml
 
 # Run unit tests
 test:

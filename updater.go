@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -91,24 +92,11 @@ func (a *App) CheckForUpdate() UpdateInfo {
 // CompareVersions returns true if v1 is newer than v2
 // Uses proper semantic version parsing (major.minor.patch)
 func CompareVersions(v1, v2 string) bool {
-	// Remove 'v' prefix
 	v1 = strings.TrimPrefix(v1, "v")
 	v2 = strings.TrimPrefix(v2, "v")
-
-	// Parse version parts
 	parts1 := parseVersion(v1)
 	parts2 := parseVersion(v2)
-
-	// Compare major, minor, patch in order
-	for i := 0; i < 3; i++ {
-		if parts1[i] > parts2[i] {
-			return true
-		}
-		if parts1[i] < parts2[i] {
-			return false
-		}
-	}
-	return false // Equal versions
+	return slices.Compare(parts1[:], parts2[:]) > 0
 }
 
 // parseVersion splits version string into [major, minor, patch] integers
@@ -144,7 +132,7 @@ func (a *App) PerformUpdate(downloadURL string) (bool, error) {
 	tempFile := filepath.Join(tempDir, "imagetoexcel_update.exe")
 
 	// Emit progress event
-	a.getApp().Event.Emit("updateProgress", "Downloading update...")
+	a.app.Event.Emit("updateProgress", "Downloading update...")
 
 	// Download new version
 	resp, err := http.Get(downloadURL)
@@ -170,7 +158,7 @@ func (a *App) PerformUpdate(downloadURL string) (bool, error) {
 		return false, fmt.Errorf("failed to save update: %w", err)
 	}
 
-	a.getApp().Event.Emit("updateProgress", "Installing update...")
+	a.app.Event.Emit("updateProgress", "Installing update...")
 
 	// Create update batch script
 	// This script will:
@@ -198,7 +186,7 @@ del "%%~f0"
 	}
 
 	// Quit the application
-	a.getApp().Quit()
+	a.app.Quit()
 
 	return true, nil
 }
