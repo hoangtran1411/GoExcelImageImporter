@@ -26,8 +26,8 @@ func NewApp() *App {
 	return &App{}
 }
 
-// SetApp sets the Wails v3 application instance
-func (a *App) SetApp(app *application.App) {
+// setApp sets the Wails v3 application instance
+func (a *App) setApp(app *application.App) {
 	a.app = app
 }
 

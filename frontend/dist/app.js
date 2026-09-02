@@ -1,18 +1,21 @@
+import * as App from "./bindings/imagetoexcel/app.js";
+import { Events } from "/wails/runtime.js";
+
 // Global variable to store update info
 let updateInfo = null;
 let currentOutputPath = null;
 
-// Wait for Wails runtime to be ready
+// Wait for Wails runtime and DOM to be ready
 document.addEventListener('DOMContentLoaded', function () {
     // Listen for progress updates from Go backend
-    if (typeof runtime !== 'undefined') {
-        runtime.EventsOn('progress', function (progress) {
-            updateProgress(progress);
+    if (typeof Events !== 'undefined') {
+        Events.On('progress', function (event) {
+            updateProgress(event.data);
         });
 
         // Listen for update progress
-        runtime.EventsOn('updateProgress', function (message) {
-            showStatus(message, 'info');
+        Events.On('updateProgress', function (event) {
+            showStatus(event.data, 'info');
         });
     }
 
@@ -29,9 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
 // Initialize worker count based on CPU cores
 async function initWorkerCount() {
     try {
-        const cores = await window.go.main.App.GetCPUCount();
+        const cores = await App.GetCPUCount();
         if (cores > 0) {
-            // Ensure element exists before setting value
             const input = document.getElementById('workerCount');
             if (input) {
                 input.value = cores;
@@ -45,7 +47,7 @@ async function initWorkerCount() {
 // Load and display current version
 async function loadVersion() {
     try {
-        const version = await window.go.main.App.GetCurrentVersion();
+        const version = await App.GetCurrentVersion();
         document.getElementById('versionText').textContent = version;
     } catch (err) {
         console.error('Failed to get version:', err);
@@ -55,7 +57,7 @@ async function loadVersion() {
 // Check for updates
 async function checkForUpdates() {
     try {
-        updateInfo = await window.go.main.App.CheckForUpdate();
+        updateInfo = await App.CheckForUpdate();
 
         if (updateInfo && updateInfo.available) {
             // Show update button
@@ -82,7 +84,7 @@ async function performUpdate() {
     showStatus(`Downloading ${updateInfo.latestVersion}...`, 'info');
 
     try {
-        const result = await window.go.main.App.PerformUpdate(updateInfo.downloadUrl);
+        const result = await App.PerformUpdate(updateInfo.downloadUrl);
         if (result) {
             showStatus('Update installed! Restarting...', 'success');
         }
@@ -95,7 +97,7 @@ async function performUpdate() {
 // Select Excel file
 async function selectExcel() {
     try {
-        const path = await window.go.main.App.SelectExcelFile();
+        const path = await App.SelectExcelFile();
         if (path) {
             document.getElementById('excelPath').value = path;
             loadSheets(path);
@@ -108,7 +110,7 @@ async function selectExcel() {
 // Select image folder
 async function selectImageFolder() {
     try {
-        const path = await window.go.main.App.SelectImageFolder();
+        const path = await App.SelectImageFolder();
         if (path) {
             document.getElementById('imageDir').value = path;
         }
@@ -120,7 +122,7 @@ async function selectImageFolder() {
 // Load sheets from Excel file
 async function loadSheets(excelPath) {
     try {
-        const sheets = await window.go.main.App.GetSheets(excelPath);
+        const sheets = await App.GetSheets(excelPath);
         const select = document.getElementById('sheetName');
 
         // Clear existing options
@@ -148,7 +150,7 @@ async function startProcess() {
     // 1. Check if we are in "Open File" mode
     if (currentOutputPath) {
         try {
-            await window.go.main.App.OpenFileLocation(currentOutputPath);
+            await App.OpenFileLocation(currentOutputPath);
         } catch (err) {
             showStatus('Could not open file: ' + err, 'error');
         }
@@ -156,7 +158,7 @@ async function startProcess() {
         // Reset UI to initial state
         currentOutputPath = null;
         const btn = document.getElementById('processBtn');
-        btn.classList.remove('btn-success'); // Assuming you might add styling
+        btn.classList.remove('btn-success');
         btn.innerHTML = `
             <svg viewBox="0 0 24 24" fill="none"><path d="M8 5V19L19 12L8 5Z" fill="currentColor"/></svg>
             Start Processing
@@ -200,18 +202,16 @@ async function startProcess() {
     btn.disabled = true;
     btn.innerHTML = `
         <svg class="processing" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+            <circle cx="12" cy="12" r="10" stroke-width="2" opacity="0.3"/>
             <path d="M12 2C6.48 2 2 6.48 2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
         Processing...
     `;
 
-
-
     let processingSuccess = false;
 
     try {
-        const result = await window.go.main.App.Process(config);
+        const result = await App.Process(config);
 
         if (result.success) {
             showStatus('✓ ' + result.message, 'success');
@@ -250,10 +250,6 @@ async function startProcess() {
                 <svg viewBox="0 0 24 24" fill="none"><path d="M8 5V19L19 12L8 5Z" fill="currentColor"/></svg>
                 Start Processing
             `;
-            // Only reset progress if failed? Or keep it? keeping logic simple
-            if (!processingSuccess) {
-                // Maybe keep progress to show it failed? But user might want to retry
-            }
         }
     }
 }
@@ -303,3 +299,9 @@ function showStatus(message, type) {
         });
     }, 4000);
 }
+
+// Expose handlers to window for HTML inline onclick attributes
+window.performUpdate = performUpdate;
+window.selectExcel = selectExcel;
+window.selectImageFolder = selectImageFolder;
+window.startProcess = startProcess;

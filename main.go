@@ -39,7 +39,7 @@ func main() {
 		},
 	})
 
-	appService.SetApp(app)
+	appService.setApp(app)
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:             "main",
