@@ -64,6 +64,8 @@ type Config struct {
 	RowHeight   float64 `json:"rowHeight"`
 	ColWidth    float64 `json:"colWidth"`
 	WorkerCount int     `json:"workerCount"`
+	StartRow    int     `json:"startRow"`
+	EndRow      int     `json:"endRow"`
 }
 
 // ProcessResult holds the result of processing
@@ -134,6 +136,12 @@ func (a *App) Process(config Config) ProcessResult {
 	if config.WorkerCount <= 0 {
 		config.WorkerCount = 10
 	}
+	if config.StartRow > 0 && config.EndRow > 0 && config.StartRow > config.EndRow {
+		return ProcessResult{
+			Success: false,
+			Message: "Start row cannot be greater than End row",
+		}
+	}
 
 	// Create processor
 	p := engine.NewProcessor(
@@ -145,6 +153,8 @@ func (a *App) Process(config Config) ProcessResult {
 		config.WorkerCount,
 		config.RowHeight,
 		config.ColWidth,
+		config.StartRow,
+		config.EndRow,
 	)
 
 	// Progress channel for real-time updates

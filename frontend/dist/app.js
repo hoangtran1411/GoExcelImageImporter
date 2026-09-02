@@ -180,6 +180,14 @@ async function startProcess() {
         return;
     }
 
+    const startRowVal = parseInt(document.getElementById('startRow').value, 10) || 0;
+    const endRowVal = parseInt(document.getElementById('endRow').value, 10) || 0;
+
+    if (startRowVal > 0 && endRowVal > 0 && startRowVal > endRowVal) {
+        showStatus('Start Row cannot be greater than End Row', 'error');
+        return;
+    }
+
     // Build config object
     const config = {
         excelPath: excelPath,
@@ -189,7 +197,9 @@ async function startProcess() {
         sheetName: document.getElementById('sheetName').value,
         rowHeight: parseFloat(document.getElementById('rowHeight').value) || 105,
         colWidth: parseFloat(document.getElementById('colWidth').value) || 20,
-        workerCount: parseInt(document.getElementById('workerCount').value) || 10
+        workerCount: parseInt(document.getElementById('workerCount').value) || 10,
+        startRow: startRowVal,
+        endRow: endRowVal
     };
 
     // Show progress bar

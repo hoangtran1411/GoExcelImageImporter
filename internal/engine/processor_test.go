@@ -81,6 +81,8 @@ func TestProcessor_Run(t *testing.T) {
 		2,   // Workers
 		100, // Row Height
 		20,  // Col Width
+		0,   // Start Row
+		0,   // End Row
 	)
 
 	// Capture progress
@@ -157,3 +159,64 @@ func TestProcessor_LoadImageData(t *testing.T) {
 		t.Error("Returned empty bytes")
 	}
 }
+
+func TestProcessor_RowRange(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "imagetoexcel_range_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	excelPath := filepath.Join(tempDir, "test.xlsx")
+	imageDir := filepath.Join(tempDir, "images")
+	_ = os.Mkdir(imageDir, 0755)
+
+	products := []string{"P001", "P002", "P003", "P004", "P005"}
+	err = createDummyExcel(excelPath, "Sheet1", "A", products)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_ = createDummyImage(filepath.Join(imageDir, "P002.png"), 100, 100)
+	_ = createDummyImage(filepath.Join(imageDir, "P003.png"), 100, 100)
+	_ = createDummyImage(filepath.Join(imageDir, "P004.png"), 100, 100)
+
+	t.Run("filter rows 2 to 3", func(t *testing.T) {
+		p := NewProcessor(excelPath, imageDir, "A", "B", "Sheet1", 2, 100, 20, 2, 3)
+		err := p.Run(context.Background())
+		if err != nil {
+			t.Fatalf("Processor.Run failed: %v", err)
+		}
+		// Rows 2 and 3 have P002 and P003. Both images exist, so 2 processed, 0 missing.
+		if p.ProcessedCount != 2 {
+			t.Errorf("Expected 2 processed images, got %d", p.ProcessedCount)
+		}
+		if len(p.MissingCodes) != 0 {
+			t.Errorf("Expected 0 missing codes, got %d", len(p.MissingCodes))
+		}
+	})
+
+	t.Run("filter from row 4 to end", func(t *testing.T) {
+		p := NewProcessor(excelPath, imageDir, "A", "B", "Sheet1", 2, 100, 20, 4, 0)
+		err := p.Run(context.Background())
+		if err != nil {
+			t.Fatalf("Processor.Run failed: %v", err)
+		}
+		// Rows 4 and 5 have P004 (exists) and P005 (missing).
+		if p.ProcessedCount != 1 {
+			t.Errorf("Expected 1 processed image, got %d", p.ProcessedCount)
+		}
+		if len(p.MissingCodes) != 1 || p.MissingCodes[0] != "P005" {
+			t.Errorf("Expected [P005] missing, got %v", p.MissingCodes)
+		}
+	})
+
+	t.Run("no rows match range", func(t *testing.T) {
+		p := NewProcessor(excelPath, imageDir, "A", "B", "Sheet1", 2, 100, 20, 10, 20)
+		err := p.Run(context.Background())
+		if err == nil {
+			t.Error("Expected error when no products match range, got nil")
+		}
+	})
+}
+

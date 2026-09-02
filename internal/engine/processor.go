@@ -42,6 +42,8 @@ type Processor struct {
 	WorkerCount int
 	RowHeight   float64
 	ColWidth    float64
+	StartRow    int
+	EndRow      int
 
 	f              *excelize.File
 	productMap     map[string]int
@@ -53,7 +55,7 @@ type Processor struct {
 	ProcessedCount int // Number of successfully processed images
 }
 
-func NewProcessor(excelPath, imageDir, codeCol, imageCol, sheetName string, workerCount int, rowHeight, colWidth float64) *Processor {
+func NewProcessor(excelPath, imageDir, codeCol, imageCol, sheetName string, workerCount int, rowHeight, colWidth float64, startRow, endRow int) *Processor {
 	return &Processor{
 		ExcelPath:    excelPath,
 		ImageDir:     imageDir,
@@ -63,6 +65,8 @@ func NewProcessor(excelPath, imageDir, codeCol, imageCol, sheetName string, work
 		WorkerCount:  workerCount,
 		RowHeight:    rowHeight,
 		ColWidth:     colWidth,
+		StartRow:     startRow,
+		EndRow:       endRow,
 		productMap:   make(map[string]int),
 		jobs:         make(chan Job, 100),
 		results:      make(chan Result, 100),
@@ -109,6 +113,15 @@ func (p *Processor) Run(ctx context.Context) error {
 		}
 
 		rowIdx++
+		// Stop if exceeded end row
+		if p.EndRow > 0 && rowIdx > p.EndRow {
+			break
+		}
+		// Skip if before start row
+		if p.StartRow > 0 && rowIdx < p.StartRow {
+			continue
+		}
+
 		row, err := rows.Columns()
 		if err != nil {
 			log.Printf("Warning: failed to read columns for row %d: %v", rowIdx, err)
@@ -124,6 +137,10 @@ func (p *Processor) Run(ctx context.Context) error {
 
 	if err := rows.Error(); err != nil {
 		return fmt.Errorf("error reading rows: %w", err)
+	}
+
+	if len(p.productMap) == 0 {
+		return fmt.Errorf("no product codes found in column %s for specified row range", p.CodeCol)
 	}
 
 	// 2. Start Workers for Image Loading/Scaling

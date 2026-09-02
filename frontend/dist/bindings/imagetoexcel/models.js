@@ -71,6 +71,20 @@ export class Config {
              */
             this["workerCount"] = 0;
         }
+        if (!("startRow" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["startRow"] = 0;
+        }
+        if (!("endRow" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["endRow"] = 0;
+        }
 
         Object.assign(this, $$source);
     }
