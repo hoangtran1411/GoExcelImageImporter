@@ -4,10 +4,10 @@ This document records ideas and plans for upgrades to the **Go Excel Image Impor
 
 ## 🚀 Priority Features (High Priority)
 
-1.  **[x] Support More Formats**: Added support for `.webp` files.
-2.  **Preview**: Allow previewing the list of product codes with missing images before running the process.
-3.  **[x] Custom Image Size**: Allow users to input Excel cell dimensions or desired image size directly from the GUI.
-4.  **[x] Logging**: Export a log file (`_missing.log`) for product codes that were not found.
+1. **[x] Support More Formats**: Added support for `.webp` files.
+2. **Preview**: Allow previewing the list of product codes with missing images before running the process.
+3. **[x] Custom Image Size**: Allow users to input Excel cell dimensions or desired image size directly from the GUI.
+4. **[x] Logging**: Export a log file (`_missing.log`) for product codes that were not found.
 
 ## 🛠️ Technical Improvements
 
@@ -25,5 +25,6 @@ This document records ideas and plans for upgrades to the **Go Excel Image Impor
 - **[x] Responsive UI**: Interface automatically adapts to window size.
 
 ## 📚 Archived Documentation
+
 - `ARCHITECTURE.md`: Detailed description of the Wails code structure.
 - `.agent/skills/`: Reusable development skills, testing, and performance patterns.

@@ -19,13 +19,13 @@ This document details the migration roadmap and architectural changes required t
 
 ## 🎯 Key Architectural Decisions
 
-| Area | Decision | Details |
-| :--- | :--- | :--- |
-| **Git Workflow** | Dedicated Branch (`feature/wails-v3`) | Work on an isolated branch to allow iterative testing without affecting `main`. |
-| **Frontend Stack** | Vanilla JS (No Bundler) | Continue using raw HTML/CSS/JS in `frontend/dist/` without `npm` or bundlers, interfacing with Wails v3 injected runtime/bindings. |
-| **Build Automation** | Dual Support (`Taskfile.yml` + `Makefile`) | Add Wails v3 standard `Taskfile.yml` while updating `Makefile` targets to wrap `wails3` commands. |
-| **Feature Scope** | 1:1 Parity + Single Instance | Keep exact UI/behavior; enable native Single Instance protection (`UniqueId`). |
-| **CI/CD Pipeline** | Immediate CI Migration | Update `.github/workflows/ci.yml` and `release.yml` on the migration branch to use `wails3` toolchain. |
+| Area                 | Decision                                   | Details                                                                                                                            |
+| :------------------- | :----------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| **Git Workflow**     | Dedicated Branch (`feature/wails-v3`)      | Work on an isolated branch to allow iterative testing without affecting `main`.                                                    |
+| **Frontend Stack**   | Vanilla JS (No Bundler)                    | Continue using raw HTML/CSS/JS in `frontend/dist/` without `npm` or bundlers, interfacing with Wails v3 injected runtime/bindings. |
+| **Build Automation** | Dual Support (`Taskfile.yml` + `Makefile`) | Add Wails v3 standard `Taskfile.yml` while updating `Makefile` targets to wrap `wails3` commands.                                  |
+| **Feature Scope**    | 1:1 Parity + Single Instance               | Keep exact UI/behavior; enable native Single Instance protection (`UniqueId`).                                                     |
+| **CI/CD Pipeline**   | Immediate CI Migration                     | Update `.github/workflows/ci.yml` and `release.yml` on the migration branch to use `wails3` toolchain.                             |
 
 ---
 
