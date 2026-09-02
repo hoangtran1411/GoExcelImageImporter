@@ -1,53 +1,59 @@
 ---
 name: Wails Go App
-description: Create desktop applications using Go backend with Wails framework and modern HTML/CSS/JS frontend. Lightweight alternative to Fyne.
+description: Create desktop applications using Go backend with Wails v3 framework and modern HTML/CSS/JS frontend. Lightweight alternative to Electron and Fyne.
 ---
 
-# Wails Go Desktop Application Skill
+# Wails v3 Desktop Application Skill
 
-This skill provides instructions for building modern, lightweight desktop applications using **Wails v2** with Go backend and HTML/CSS/JS frontend.
+This skill provides instructions for building modern, lightweight desktop applications using **Wails v3** with a Go backend and HTML/CSS/JS frontend.
 
 ## When to Use This Skill
 
 Use this skill when:
-- Building a Go desktop application with GUI
-- Need a lightweight alternative to Fyne (Fyne requires OpenGL compilation)
-- Want to use web technologies (HTML/CSS/JS) for UI
-- Building cross-platform apps (Windows, macOS, Linux)
+- Building a Go desktop application with a modern GUI
+- Need a lightweight, memory-efficient alternative to Electron (~15MB vs ~150MB) or Fyne (which requires OpenGL toolchains)
+- Want native Windows WebView2 integration with HTML/CSS/JS
+- Requiring native desktop capabilities: file dialogs, system tray, single-instance lifecycle, and auto-updates
 
 ## Prerequisites
 
-### 1. Install Wails CLI
+### 1. Install Wails v3 CLI
 ```bash
-go install github.com/wailsapp/wails/v2/cmd/wails@latest
+go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 ```
 
 ### 2. Verify Installation
 ```bash
-wails doctor
+wails3 doctor
 ```
 
 This checks:
-- Go version
-- Node.js (required for frontend bundling if using frameworks)
-- WebView2 runtime (Windows) - usually pre-installed on Windows 10/11
+- Go version (Go 1.22+)
+- WebView2 runtime (Windows 10/11 native)
+- C compiler / build environment
 
 ## Project Structure
 
-A typical Wails project structure:
+Standard Wails v3 project structure (configured for Vanilla JS without bundler dependencies):
 
-```
+```text
 project/
-├── main.go              # Wails entry point with app configuration
-├── app.go               # Backend logic (Go methods exposed to frontend)
-├── wails.json           # Wails configuration file
-├── go.mod               # Go module
+├── main.go              # Wails v3 entry point, window & single-instance options
+├── app.go               # Wails Service (Go methods exposed to JS bindings)
+├── Taskfile.yml         # Wails v3 task runner (standard build automation)
+├── Makefile             # Optional dual-support Makefile wrapping Taskfile
+├── go.mod               # Go module definition
 ├── frontend/
 │   └── dist/
-│       ├── index.html   # Main HTML file
-│       ├── style.css    # CSS styles
-│       └── app.js       # Frontend JavaScript logic
-└── internal/            # Business logic (optional)
+│       ├── index.html   # Main HTML file (loads app.js as module)
+│       ├── style.css    # CSS styling
+│       ├── app.js       # Frontend controller (ES Module)
+│       ├── runtime.js   # Bundled standalone Wails v3 runtime
+│       └── bindings/    # Generated JS bindings for Go services & models
+└── build/               # Build assets, configuration, and artifacts
+    ├── config.yml       # Wails v3 project config & dev watcher
+    ├── devserver.go     # Lightweight stdlib dev server for live-reloading
+    └── windows/         # Windows manifest, icons, and packaging scripts
 ```
 
 ## Core Files
@@ -59,106 +65,111 @@ package main
 
 import (
 	"embed"
+	"log"
 
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	app := NewApp()
+	appService := NewApp()
 
-	err := wails.Run(&options.App{
-		Title:     "My App Name",
-		Width:     900,
-		Height:    720,
-		MinWidth:  700,
-		MinHeight: 600,
-		AssetServer: &assetserver.Options{
-			Assets: assets,
+	app := application.New(application.Options{
+		Name:        "MyApp",
+		Description: "My Desktop Application",
+		Services: []application.Service{
+			application.NewService(appService),
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.startup,
-		Bind: []interface{}{
-			app,
-		},
-		Windows: &windows.Options{
-			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
+		Assets: application.AssetFileServerFS(assets),
+		SingleInstance: &application.SingleInstanceOptions{
+			UniqueID: "com.example.myapp",
+			OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
+				if win, ok := application.Get().Window.GetByName("main"); ok {
+					win.Restore()
+					win.Focus()
+				}
+			},
 		},
 	})
 
-	if err != nil {
-		println("Error:", err.Error())
+	appService.setApp(app)
+
+	app.Window.NewWithOptions(application.WebviewWindowOptions{
+		Name:             "main",
+		Title:            "My App",
+		Width:            900,
+		Height:           720,
+		MinWidth:         700,
+		MinHeight:        600,
+		BackgroundColour: application.NewRGB(27, 38, 54),
+	})
+
+	if err := app.Run(); err != nil {
+		log.Fatal(err)
 	}
 }
 ```
 
-### 2. app.go - Backend Logic
+### 2. app.go - Service & Backend Logic
 
 ```go
 package main
 
 import (
-	"context"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"fmt"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type App struct {
-	ctx context.Context
+	app *application.App
 }
 
 func NewApp() *App {
 	return &App{}
 }
 
-func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
+func (a *App) setApp(app *application.App) {
+	a.app = app
 }
 
-// Exposed methods - callable from JavaScript
+func (a *App) getApp() *application.App {
+	if a.app != nil {
+		return a.app
+	}
+	return application.Get()
+}
+
+// ServiceStartup is called by Wails v3 when the service starts
+func (a *App) ServiceStartup(ctx application.ServiceContext) error {
+	return nil
+}
+
+// Exposed methods - automatically bound to JavaScript
+
 func (a *App) SelectFile() (string, error) {
-	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Select File",
-		Filters: []runtime.FileFilter{
-			{DisplayName: "All Files", Pattern: "*.*"},
-		},
-	})
+	dialog := a.getApp().Dialog.OpenFile()
+	dialog.SetTitle("Select File")
+	dialog.AddFilter("All Files (*.*)", "*.*")
+	return dialog.PromptForSingleSelection()
 }
 
 func (a *App) SelectFolder() (string, error) {
-	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Select Folder",
-	})
+	dialog := a.getApp().Dialog.OpenFile()
+	dialog.SetTitle("Select Folder")
+	dialog.CanChooseDirectories(true)
+	dialog.CanChooseFiles(false)
+	return dialog.PromptForSingleSelection()
 }
 
-// Emit events to frontend
-func (a *App) EmitProgress(progress float64) {
-	runtime.EventsEmit(a.ctx, "progress", progress)
-}
-```
-
-### 3. wails.json - Configuration
-
-```json
-{
-  "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "myapp",
-  "outputfilename": "MyApp",
-  "frontend:install": "",
-  "frontend:build": "",
-  "author": {
-    "name": "Your Name",
-    "email": "your@email.com"
-  }
+func (a *App) EmitProgress(percent float64) {
+	a.getApp().Event.Emit("progress", percent)
 }
 ```
 
-### 4. frontend/dist/index.html
+### 3. frontend/dist/index.html
 
 ```html
 <!DOCTYPE html>
@@ -166,184 +177,152 @@ func (a *App) EmitProgress(progress float64) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My App</title>
+    <title>My Wails App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
-        <!-- Your UI here -->
+        <!-- UI Elements -->
+        <button id="selectBtn" onclick="selectFile()">Browse</button>
+        <button id="startBtn" onclick="startProcess()">Start</button>
     </div>
-    <script src="wails.js"></script>
-    <script src="app.js"></script>
+
+    <!-- Wails v3 ES Module entrypoint -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
 ```
 
-### 5. frontend/dist/app.js - Frontend Logic
+### 4. frontend/dist/app.js - Frontend Logic & Bindings
 
 ```javascript
-// Call Go methods
+import * as App from './bindings/main/app.js';
+import { Events } from '/wails/runtime.js';
+
+// Listen to backend events (payload is in e.data)
+Events.On('progress', (e) => {
+    console.log('Progress:', e.data);
+});
+
+// Call exposed Go methods
 async function selectFile() {
     try {
-        const path = await window.go.main.App.SelectFile();
+        const path = await App.SelectFile();
         console.log('Selected:', path);
     } catch (err) {
-        console.error(err);
+        console.error('Failed to select file:', err);
     }
 }
 
-// Listen for events from Go
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof runtime !== 'undefined') {
-        runtime.EventsOn('progress', function(value) {
-            console.log('Progress:', value);
-        });
-    }
+// Attach to window for inline HTML onclick handlers
+window.selectFile = selectFile;
+```
+
+---
+
+## Frontend Architecture Options
+
+### Option A: Vanilla JS (Default & Recommended for Utility Apps)
+- **Zero build dependencies**: No Node.js, npm, webpack, or Vite needed.
+- Assets live directly in `frontend/dist`.
+- Generates bundled runtime: `wails3 generate runtime -d frontend/dist`
+- Generates ES module bindings: `wails3 generate bindings -b -d frontend/dist/bindings`
+- Uses `build/devserver.go` for live-reload dev mode.
+
+### Option B: Frontend Framework (React, Vue, Svelte, Vite)
+- Uses Node/npm package manager in `frontend/`.
+- Configures `frontend:run:npm` in `build/Taskfile.yml`.
+- Wails proxies requests to Vite dev server (`http://localhost:5173`) in dev mode.
+
+---
+
+## Build Automation & Commands
+
+### 1. Generating Assets & Bindings
+```bash
+# Generate bundled runtime for vanilla JS
+wails3 generate runtime -d frontend/dist
+
+# Generate typed bindings with bundled runtime references
+wails3 generate bindings -b -d frontend/dist/bindings
+```
+
+### 2. Development Mode
+```bash
+wails3 dev
+# or via Makefile
+make dev
+```
+- Automatically builds dev binary with `-gcflags=all="-l"`.
+- Runs dev server in background and watches `*.go`, `*.js`, `*.html`, `*.css`.
+
+### 3. Production Build
+```bash
+# Canonical Wails v3 build
+wails3 build
+
+# Windows targeted build
+wails3 task windows:build
+
+# Release build with version injection
+wails3 task windows:build VERSION=v1.0.0
+
+# Using Makefile
+make build
+make build-release VERSION=v1.0.0
+```
+
+---
+
+## Wails v3 Runtime API Reference
+
+### Dialogs
+```go
+// Open file
+file, err := app.Dialog.OpenFile().
+    SetTitle("Select Document").
+    AddFilter("Excel Files (*.xlsx)", "*.xlsx").
+    PromptForSingleSelection()
+
+// Open folder
+folder, err := app.Dialog.OpenFile().
+    SetTitle("Select Directory").
+    CanChooseDirectories(true).
+    CanChooseFiles(false).
+    PromptForSingleSelection()
+
+// Message dialog
+app.Dialog.Info().SetTitle("Done").SetMessage("Completed successfully").Show()
+```
+
+### Events
+```go
+// Backend Emit
+app.Event.Emit("eventName", payload)
+```
+```javascript
+// Frontend Listen
+import { Events } from '/wails/runtime.js';
+Events.On('eventName', (e) => {
+    console.log('Received:', e.data);
 });
 ```
 
-## Commands
-
-### Development Mode
-```bash
-wails dev
-```
-- Hot reload for frontend changes
-- Auto-rebuild for Go changes
-- Access via browser at displayed URL
-
-### Build Production
-```bash
-wails build
-```
-
-### Build with Compression (requires UPX)
-```bash
-wails build -upx
-```
-
-### Build Windows Installer (requires NSIS)
-```bash
-wails build -nsis
-```
-
-## Go ↔ JavaScript Communication
-
-### Calling Go from JavaScript
-```javascript
-// All public methods on bound structs are available
-const result = await window.go.main.App.MethodName(arg1, arg2);
-```
-
-### Emitting Events from Go to JavaScript
+### Window Management
 ```go
-runtime.EventsEmit(a.ctx, "eventName", data)
-```
-
-### Listening for Events in JavaScript
-```javascript
-runtime.EventsOn("eventName", (data) => {
-    console.log(data);
-});
-```
-
-## Common Runtime Methods
-
-```go
-import "github.com/wailsapp/wails/v2/pkg/runtime"
-
-// Dialogs
-runtime.OpenFileDialog(ctx, options)
-runtime.OpenDirectoryDialog(ctx, options)
-runtime.SaveFileDialog(ctx, options)
-runtime.MessageDialog(ctx, options)
-
-// Events
-runtime.EventsEmit(ctx, eventName, data)
-runtime.EventsOn(ctx, eventName, callback)
-runtime.EventsOff(ctx, eventName)
-
-// Window Control
-runtime.WindowMinimise(ctx)
-runtime.WindowMaximise(ctx)
-runtime.WindowSetTitle(ctx, title)
-runtime.WindowSetSize(ctx, width, height)
-runtime.Quit(ctx)
-```
-
-## CSS Dark Theme Template
-
-See `examples/dark-theme.css` for a complete premium dark theme with:
-- CSS variables for easy customization
-- Card components
-- Form inputs
-- Buttons with hover effects
-- Progress bars
-- Status messages
-- Smooth animations
-
-## Best Practices & Linting
-
-To ensure high code quality and pass common linters (like `golangci-lint`), follow these patterns:
-
-### 1. Handle All Errors
-Always check error return values. If you must ignore an error (e.g., in a background cleanup or UI adjustment), do so explicitly:
-```go
-// Good: Explicitly ignored
-_ = p.f.SetRowHeight(sheet, index, height)
-
-// Bad: Unchecked error (errcheck will fail)
-p.f.SetRowHeight(sheet, index, height)
-```
-
-### 2. Prefer strconv over fmt.Sscanf
-For simple integer or float parsing, use `strconv` instead of `fmt.Sscanf` to avoid complex error handling or unchecked lints:
-```go
-// Recommended
-val, _ := strconv.Atoi(str)
-
-// Discouraged (often triggers errcheck)
-fmt.Sscanf(str, "%d", &val)
-```
-
-### 3. File Operations
-Always handle errors for file I/O. Use `defer` for closing files immediately after opening.
-```go
-f, err := os.Open(path)
-if err != nil {
-    return err
+win, ok := app.Window.GetByName("main")
+if ok {
+    win.Center()
+    win.Focus()
+    win.SetTitle("Updated Title")
 }
-defer f.Close()
 ```
 
-### 4. Run Linters Locally
-Install and run `golangci-lint` before committing:
-```bash
-golangci-lint run ./...
-```
+---
 
-## Tips
+## Best Practices
 
-
-1. **Keep frontend simple**: For simple apps, use vanilla HTML/CSS/JS without bundlers
-2. **Use embed.FS**: Always embed frontend assets for single-binary distribution
-3. **Struct binding**: Only public methods (uppercase) are exposed to JavaScript
-4. **Error handling**: Go errors are returned as JavaScript promise rejections
-5. **Progress updates**: Use events for real-time progress reporting
-
-## Comparison: Wails vs Fyne
-
-| Aspect | Wails | Fyne |
-|--------|-------|------|
-| Binary Size | ~8-10MB | ~25-30MB |
-| Compile Time | Fast | Slow (OpenGL) |
-| UI Technology | HTML/CSS/JS | Go widgets |
-| Styling | Full CSS control | Limited |
-| Learning Curve | Web devs friendly | Go-only |
-| Hot Reload | Yes (dev mode) | No |
-
-## Resources
-
-- [Wails Documentation](https://wails.io/docs/introduction)
-- [Wails GitHub](https://github.com/wailsapp/wails)
-- [Wails Templates](https://wails.io/docs/community/templates)
+1. **Single Instance**: Always configure `SingleInstanceOptions` with a unique ID to prevent database/file locking conflicts.
+2. **Context & Goroutines**: Heavy processing belongs in separate goroutines coordinated via channels. Do not block Wails service methods.
+3. **Non-blocking Event Emission**: When emitting frequent progress updates, use non-blocking channel sends or throttle event emits to avoid flooding the webview.
+4. **Clean Binding Generation**: Keep internal helper methods unexported or on unexported receiver types so they are not exposed in generated JS bindings.

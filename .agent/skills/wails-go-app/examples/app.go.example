@@ -1,146 +1,83 @@
 package main
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// App struct holds the application state
+// App struct implements the Wails v3 service
 type App struct {
-	ctx context.Context
+	app *application.App
 }
 
-// NewApp creates a new App application struct
+// NewApp creates a new App service
 func NewApp() *App {
 	return &App{}
 }
 
-// startup is called when the app starts. Save the context for runtime calls.
-func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
+func (a *App) setApp(app *application.App) {
+	a.app = app
+}
+
+func (a *App) getApp() *application.App {
+	if a.app != nil {
+		return a.app
+	}
+	return application.Get()
+}
+
+// ServiceStartup is called by Wails v3 when the service is initialized
+func (a *App) ServiceStartup(ctx application.ServiceContext) error {
+	return nil
 }
 
 // ============ File Dialogs ============
 
 // SelectFile opens a file dialog and returns the selected file path
-func (a *App) SelectFile(title string, patterns []string) (string, error) {
-	filters := []runtime.FileFilter{}
-	if len(patterns) > 0 {
-		filters = append(filters, runtime.FileFilter{
-			DisplayName: "Allowed Files",
-			Pattern:     patterns[0],
-		})
+func (a *App) SelectFile(title string, extension string) (string, error) {
+	app := a.getApp()
+	dialog := app.Dialog.OpenFile()
+	if title != "" {
+		dialog.SetTitle(title)
+	} else {
+		dialog.SetTitle("Select File")
 	}
 
-	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		Title:   title,
-		Filters: filters,
-	})
+	if extension != "" {
+		dialog.AddFilter(fmt.Sprintf("Files (*%s)", extension), fmt.Sprintf("*%s", extension))
+	} else {
+		dialog.AddFilter("All Files (*.*)", "*.*")
+	}
+
+	return dialog.PromptForSingleSelection()
 }
 
-// SelectFolder opens a folder dialog and returns the selected folder path
+// SelectFolder opens a folder dialog and returns the selected directory path
 func (a *App) SelectFolder(title string) (string, error) {
-	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: title,
-	})
+	app := a.getApp()
+	dialog := app.Dialog.OpenFile()
+	if title != "" {
+		dialog.SetTitle(title)
+	} else {
+		dialog.SetTitle("Select Folder")
+	}
+	dialog.CanChooseDirectories(true)
+	dialog.CanChooseFiles(false)
+	return dialog.PromptForSingleSelection()
 }
 
-// SaveFile opens a save file dialog and returns the selected path
-func (a *App) SaveFile(title string, defaultFilename string) (string, error) {
-	return runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title:           title,
-		DefaultFilename: defaultFilename,
-	})
-}
+// ============ Events & Notifications ============
 
-// ============ Message Dialogs ============
-
-// ShowInfo shows an information dialog
-func (a *App) ShowInfo(title, message string) {
-	runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Type:    runtime.InfoDialog,
-		Title:   title,
-		Message: message,
-	})
-}
-
-// ShowError shows an error dialog
-func (a *App) ShowError(title, message string) {
-	runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Type:    runtime.ErrorDialog,
-		Title:   title,
-		Message: message,
-	})
-}
-
-// ShowConfirm shows a confirmation dialog and returns the user's choice
-func (a *App) ShowConfirm(title, message string) (bool, error) {
-	result, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Type:          runtime.QuestionDialog,
-		Title:         title,
-		Message:       message,
-		Buttons:       []string{"Yes", "No"},
-		DefaultButton: "Yes",
-	})
-	return result == "Yes", err
-}
-
-// ============ Events ============
-
-// EmitProgress emits a progress event to the frontend
+// EmitProgress emits progress updates to the frontend (0.0 to 1.0)
 func (a *App) EmitProgress(progress float64) {
-	runtime.EventsEmit(a.ctx, "progress", progress)
+	a.getApp().Event.Emit("progress", progress)
 }
 
-// EmitStatus emits a status message to the frontend
-func (a *App) EmitStatus(status string, statusType string) {
-	runtime.EventsEmit(a.ctx, "status", map[string]string{
-		"message": status,
-		"type":    statusType,
-	})
-}
-
-// ============ Window Control ============
-
-// MinimizeWindow minimizes the application window
-func (a *App) MinimizeWindow() {
-	runtime.WindowMinimise(a.ctx)
-}
-
-// MaximizeWindow maximizes the application window
-func (a *App) MaximizeWindow() {
-	runtime.WindowMaximise(a.ctx)
-}
-
-// SetWindowTitle sets the window title
-func (a *App) SetWindowTitle(title string) {
-	runtime.WindowSetTitle(a.ctx, title)
-}
-
-// QuitApp closes the application
-func (a *App) QuitApp() {
-	runtime.Quit(a.ctx)
-}
-
-// ============ Business Logic Example ============
-
-// ProcessData is an example method that processes data with progress reporting
-func (a *App) ProcessData(items []string) (string, error) {
-	total := len(items)
-	if total == 0 {
-		return "", fmt.Errorf("no items to process")
-	}
-
-	for i, item := range items {
-		// Simulate processing
-		fmt.Println("Processing:", item)
-
-		// Report progress
-		progress := float64(i+1) / float64(total) * 100
-		a.EmitProgress(progress)
-	}
-
-	return fmt.Sprintf("Processed %d items successfully", total), nil
+// ShowInfo shows an information modal dialog
+func (a *App) ShowInfo(title, message string) {
+	dialog := a.getApp().Dialog.Info()
+	dialog.SetTitle(title)
+	dialog.SetMessage(message)
+	dialog.Show()
 }
