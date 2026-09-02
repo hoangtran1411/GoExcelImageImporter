@@ -1,5 +1,5 @@
 ---
-name: Wails Go App
+name: wails-go-app
 description: Create desktop applications using Go backend with Wails v3 framework and modern HTML/CSS/JS frontend. Lightweight alternative to Electron and Fyne.
 ---
 
