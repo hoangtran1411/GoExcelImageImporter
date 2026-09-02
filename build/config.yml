@@ -39,8 +39,9 @@ dev_mode:
     dir:
       - .git
       - node_modules
-      - frontend
       - bin
+      - build/bin
+      - frontend/dist/bindings
     file:
       - .DS_Store
       - .gitignore
@@ -48,13 +49,14 @@ dev_mode:
       - "*_test.go"
     watched_extension:
       - "*.go"
-      - "*.js" # Watch for changes to JS/TS files included using the //wails:include directive.
-      - "*.ts" # The frontend directory will be excluded entirely by the setting above.
+      - "*.js"
+      - "*.html"
+      - "*.css"
     git_ignore: true
   executes:
     - cmd: wails3 build DEV=true
       type: blocking
-    - cmd: wails3 task common:dev:frontend
+    - cmd: go run ./build/devserver.go
       type: background
     - cmd: wails3 task run
       type: primary
