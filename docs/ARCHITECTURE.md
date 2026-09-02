@@ -6,20 +6,24 @@ The project is organized following the **Wails Architecture**, combining Go (Bac
 
 ```text
 ImageToExcel/
-├── main.go               # Wails Entry point, window configuration
-├── app.go                # Backend Logic (Methods exposed to JS)
-├── wails.json            # Wails project configuration
+├── main.go               # Wails v3 Entry point, window configuration, single instance
+├── app.go                # Wails v3 Service (Methods exposed to JS)
+├── updater.go            # GitHub Release auto-updater
+├── Taskfile.yml          # Wails v3 project build tasks
+├── Makefile              # Dual-support developer build automation
 ├── frontend/             # User Interface
-│   └── dist/             # HTML/CSS/JS Assets (embedded into binary)
+│   └── dist/             # Embedded HTML/CSS/JS Assets
 │       ├── index.html
 │       ├── style.css
-│       └── app.js
+│       ├── app.js
+│       ├── runtime.js    # Bundled Wails v3 runtime
+│       └── bindings/     # Generated JS bindings
 ├── internal/             # Core Business Logic
 │   └── engine/           # Processing Logic
 │       ├── processor.go  # Excel mapping, worker pool, image insertion
 │       └── processor_test.go
-├── build/                # Build output directory
-└── go.mod                # Dependency management (Go)
+├── build/                # Build assets, icons, and output directory
+└── go.mod                # Dependency management (Go 1.25+, Wails v3)
 ```
 
 ## ⚙️ Main Flow

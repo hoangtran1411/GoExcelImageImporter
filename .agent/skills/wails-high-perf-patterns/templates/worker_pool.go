@@ -95,7 +95,7 @@ func RunExample(items []string) {
 		if res.Err != nil {
 			fmt.Println("Error:", res.Err)
 		} else {
-			// runtime.EventsEmit(ctx, "progress", ...)
+			// app.Event.Emit("progress", ...) (Wails v3)
 		}
 	}
 }

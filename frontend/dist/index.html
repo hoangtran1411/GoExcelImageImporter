@@ -107,16 +107,24 @@
                             <input type="text" id="imageCol" value="F" placeholder="F">
                         </div>
                         <div class="input-group">
+                            <label>Worker Count</label>
+                            <input type="number" id="workerCount" value="10" min="1" max="50">
+                        </div>
+                        <div class="input-group">
+                            <label>Start Row (0 = First)</label>
+                            <input type="number" id="startRow" value="0" min="0" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label>End Row (0 = Last)</label>
+                            <input type="number" id="endRow" value="0" min="0" placeholder="0">
+                        </div>
+                        <div class="input-group">
                             <label>Row Height</label>
                             <input type="number" id="rowHeight" value="105" min="1">
                         </div>
                         <div class="input-group">
                             <label>Column Width</label>
                             <input type="number" id="colWidth" value="20" min="1">
-                        </div>
-                        <div class="input-group">
-                            <label>Worker Count</label>
-                            <input type="number" id="workerCount" value="10" min="1" max="50">
                         </div>
                     </div>
                 </div>
@@ -148,8 +156,7 @@
         </footer>
     </div>
 
-    <script src="wails.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 
 </html>

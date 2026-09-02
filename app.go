@@ -11,12 +11,13 @@ import (
 
 	stdruntime "runtime"
 
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/xuri/excelize/v2"
 )
 
 // App struct
 type App struct {
+	app *application.App
 	ctx context.Context
 }
 
@@ -25,9 +26,32 @@ func NewApp() *App {
 	return &App{}
 }
 
-// startup is called when the app starts
-func (a *App) startup(ctx context.Context) {
+// setApp sets the Wails v3 application instance
+func (a *App) setApp(app *application.App) {
+	a.app = app
+}
+
+// ServiceStartup is called when Wails v3 initializes the service
+func (a *App) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
 	a.ctx = ctx
+	return nil
+}
+
+func (a *App) getApp() *application.App {
+	if a.app != nil {
+		return a.app
+	}
+	return application.Get()
+}
+
+func (a *App) getContext() context.Context {
+	if a.ctx != nil {
+		return a.ctx
+	}
+	if a.app != nil {
+		return a.app.Context()
+	}
+	return context.Background()
 }
 
 // Config holds the processing configuration
@@ -40,6 +64,8 @@ type Config struct {
 	RowHeight   float64 `json:"rowHeight"`
 	ColWidth    float64 `json:"colWidth"`
 	WorkerCount int     `json:"workerCount"`
+	StartRow    int     `json:"startRow"`
+	EndRow      int     `json:"endRow"`
 }
 
 // ProcessResult holds the result of processing
@@ -52,24 +78,21 @@ type ProcessResult struct {
 
 // SelectExcelFile opens a file dialog to select an Excel file
 func (a *App) SelectExcelFile() (string, error) {
-	file, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Select Excel File",
-		Filters: []runtime.FileFilter{
-			{
-				DisplayName: "Excel Files (*.xlsx)",
-				Pattern:     "*.xlsx",
-			},
-		},
-	})
-	return file, err
+	app := a.getApp()
+	dialog := app.Dialog.OpenFile()
+	dialog.SetTitle("Select Excel File")
+	dialog.AddFilter("Excel Files (*.xlsx)", "*.xlsx")
+	return dialog.PromptForSingleSelection()
 }
 
 // SelectImageFolder opens a folder dialog to select the image directory
 func (a *App) SelectImageFolder() (string, error) {
-	folder, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Select Image Folder",
-	})
-	return folder, err
+	app := a.getApp()
+	dialog := app.Dialog.OpenFile()
+	dialog.SetTitle("Select Image Folder")
+	dialog.CanChooseDirectories(true)
+	dialog.CanChooseFiles(false)
+	return dialog.PromptForSingleSelection()
 }
 
 // GetSheets returns sheet names from an Excel file
@@ -113,6 +136,12 @@ func (a *App) Process(config Config) ProcessResult {
 	if config.WorkerCount <= 0 {
 		config.WorkerCount = 10
 	}
+	if config.StartRow > 0 && config.EndRow > 0 && config.StartRow > config.EndRow {
+		return ProcessResult{
+			Success: false,
+			Message: "Start row cannot be greater than End row",
+		}
+	}
 
 	// Create processor
 	p := engine.NewProcessor(
@@ -124,6 +153,8 @@ func (a *App) Process(config Config) ProcessResult {
 		config.WorkerCount,
 		config.RowHeight,
 		config.ColWidth,
+		config.StartRow,
+		config.EndRow,
 	)
 
 	// Progress channel for real-time updates
@@ -132,13 +163,14 @@ func (a *App) Process(config Config) ProcessResult {
 
 	// Send progress updates to frontend
 	go func() {
+		app := a.getApp()
 		for progress := range progressChan {
-			runtime.EventsEmit(a.ctx, "progress", progress*100)
+			app.Event.Emit("progress", progress*100)
 		}
 	}()
 
 	// Run processing
-	err := p.Run(a.ctx)
+	err := p.Run(a.getContext())
 	if err != nil {
 		return ProcessResult{
 			Success: false,

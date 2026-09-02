@@ -1,5 +1,5 @@
 ---
-name: Go Test & Makefile
+name: go-test-makefile
 description: Standard setup for Go projects with Makefile automation and Unit Testing patterns.
 ---
 

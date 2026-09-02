@@ -1,52 +1,55 @@
 /**
- * Wails Frontend JavaScript Template
- * Common patterns for Wails apps
+ * Wails v3 Frontend JavaScript Template (ES Module)
+ * Common patterns for Wails v3 apps
  */
 
-// ============ Initialization ============
+import * as App from './bindings/main/app.js';
+import { Events } from '/wails/runtime.js';
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Listen for events from Go backend
-    if (typeof runtime !== 'undefined') {
-        // Progress updates
-        runtime.EventsOn('progress', function(progress) {
-            updateProgress(progress);
-        });
+// ============ Event Listeners ============
 
-        // Status updates
-        runtime.EventsOn('status', function(data) {
-            showStatus(data.message, data.type);
-        });
-    }
+// Listen for progress updates emitted by backend
+Events.On('progress', function(event) {
+    // Note: Wails v3 places the payload in event.data
+    const progress = event.data;
+    updateProgress(progress);
+});
+
+// Listen for status updates
+Events.On('status', function(event) {
+    const data = event.data;
+    showStatus(data.message, data.type);
 });
 
 // ============ Go Method Calls ============
 
 /**
- * Select a file using native dialog
+ * Select a file using native Wails v3 dialog
  */
 async function selectFile() {
     try {
-        const path = await window.go.main.App.SelectFile('Select File', ['*.*']);
+        const path = await App.SelectFile('Select File', '');
         if (path) {
-            document.getElementById('filePath').value = path;
+            const input = document.getElementById('filePath');
+            if (input) input.value = path;
         }
     } catch (err) {
-        showStatus('Error: ' + err, 'error');
+        showStatus('Error selecting file: ' + err, 'error');
     }
 }
 
 /**
- * Select a folder using native dialog
+ * Select a folder using native Wails v3 dialog
  */
 async function selectFolder() {
     try {
-        const path = await window.go.main.App.SelectFolder('Select Folder');
+        const path = await App.SelectFolder('Select Folder');
         if (path) {
-            document.getElementById('folderPath').value = path;
+            const input = document.getElementById('folderPath');
+            if (input) input.value = path;
         }
     } catch (err) {
-        showStatus('Error: ' + err, 'error');
+        showStatus('Error selecting folder: ' + err, 'error');
     }
 }
 
@@ -57,83 +60,41 @@ async function startProcess() {
     const btn = document.getElementById('processBtn');
     
     try {
-        // Disable button during processing
-        btn.disabled = true;
-        btn.textContent = 'Processing...';
-        
-        // Reset progress
+        if (btn) btn.disabled = true;
         updateProgress(0);
-        
-        // Call Go method
-        const result = await window.go.main.App.ProcessData(['item1', 'item2', 'item3']);
-        
-        showStatus('✓ ' + result, 'success');
+        showStatus('Processing started...', 'info');
+
+        // Call your Go service method here:
+        // const result = await App.Process(config);
+
+        showStatus('Processing completed successfully!', 'success');
     } catch (err) {
-        showStatus('✗ Error: ' + err, 'error');
+        showStatus('Error: ' + err, 'error');
     } finally {
-        btn.disabled = false;
-        btn.textContent = 'Start Processing';
+        if (btn) btn.disabled = false;
     }
 }
 
 // ============ UI Helpers ============
 
-/**
- * Update progress bar
- * @param {number} percent - Progress percentage (0-100)
- */
 function updateProgress(percent) {
     const fill = document.getElementById('progressFill');
     const text = document.getElementById('progressText');
+    const displayVal = Math.round(percent * 100);
     
-    if (fill) fill.style.width = percent + '%';
-    if (text) text.textContent = Math.round(percent) + '%';
+    if (fill) fill.style.width = displayVal + '%';
+    if (text) text.textContent = displayVal + '%';
 }
 
-/**
- * Show status message
- * @param {string} message - Message to display
- * @param {string} type - Message type: 'success', 'error', 'info'
- */
-function showStatus(message, type) {
+function showStatus(message, type = 'info') {
     const section = document.getElementById('statusSection');
     if (!section) return;
     
-    section.innerHTML = `<div class="status-message ${type}">${message}</div>`;
+    section.className = 'status ' + type;
+    section.textContent = message;
 }
 
-/**
- * Clear status message
- */
-function clearStatus() {
-    const section = document.getElementById('statusSection');
-    if (section) section.innerHTML = '';
-}
-
-// ============ Utilities ============
-
-/**
- * Debounce function for input handlers
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
- * Format file size to human readable
- */
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
+// ============ Attach to Window for Inline HTML Handlers ============
+window.selectFile = selectFile;
+window.selectFolder = selectFolder;
+window.startProcess = startProcess;

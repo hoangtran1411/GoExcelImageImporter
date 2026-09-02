@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // CurrentVersion is injected at build time via -ldflags
@@ -146,7 +144,7 @@ func (a *App) PerformUpdate(downloadURL string) (bool, error) {
 	tempFile := filepath.Join(tempDir, "imagetoexcel_update.exe")
 
 	// Emit progress event
-	runtime.EventsEmit(a.ctx, "updateProgress", "Downloading update...")
+	a.getApp().Event.Emit("updateProgress", "Downloading update...")
 
 	// Download new version
 	resp, err := http.Get(downloadURL)
@@ -172,7 +170,7 @@ func (a *App) PerformUpdate(downloadURL string) (bool, error) {
 		return false, fmt.Errorf("failed to save update: %w", err)
 	}
 
-	runtime.EventsEmit(a.ctx, "updateProgress", "Installing update...")
+	a.getApp().Event.Emit("updateProgress", "Installing update...")
 
 	// Create update batch script
 	// This script will:
@@ -200,7 +198,7 @@ del "%%~f0"
 	}
 
 	// Quit the application
-	runtime.Quit(a.ctx)
+	a.getApp().Quit()
 
 	return true, nil
 }

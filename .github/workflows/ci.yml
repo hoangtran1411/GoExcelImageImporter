@@ -2,19 +2,21 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feature/*" ]
   pull_request:
     branches: [ "main" ]
 
 env:
   GO_VERSION: '1.25.6'
   NODE_VERSION: '22'
-  WAILS_VERSION: 'v2.11.0'
+  WAILS_VERSION: 'v3.0.0-beta.16'
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    env:
+      GOOS: windows
     steps:
     - uses: actions/checkout@v4
 
@@ -32,8 +34,11 @@ jobs:
 
   test:
     name: Test & Coverage
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: lint
+    defaults:
+      run:
+        shell: bash
     steps:
     - uses: actions/checkout@v4
 
@@ -44,7 +49,7 @@ jobs:
         cache: true
 
     - name: Run Unit Tests with Coverage
-      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./internal/engine ./
+      run: go test -v "-coverprofile=coverage.out" "-covermode=atomic" ./internal/engine ./
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -58,7 +63,8 @@ jobs:
       run: |
         COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
         echo "Total coverage: ${COVERAGE}%"
-        if (( $(echo "$COVERAGE < 40" | bc -l) )); then
+        COVERAGE_INT=${COVERAGE%.*}
+        if [ "$COVERAGE_INT" -lt 40 ]; then
           echo "::warning::Coverage ${COVERAGE}% is below the 40% threshold"
         fi
 
@@ -81,11 +87,11 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
 
-    - name: Install Wails
-      run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
+    - name: Install Wails v3
+      run: go install github.com/wailsapp/wails/v3/cmd/wails3@${{ env.WAILS_VERSION }}
 
     - name: Build Windows EXE
-      run: wails build -platform windows/amd64
+      run: wails3 build
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

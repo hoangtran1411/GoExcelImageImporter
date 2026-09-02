@@ -7,7 +7,8 @@ trigger: always_on
 > **Core Rules** - For full idioms reference, see `go-idioms-reference.md`
 
 This project is an **Excel image insertion utility** built with:
-- **Wails v2** for the Desktop GUI (Windows)
+
+- **Wails v3** for the Desktop GUI (Windows)
 - **Excelize v2** for Excel file manipulation
 - **Worker Pool** for parallel image processing
 
@@ -16,7 +17,7 @@ This project is an **Excel image insertion utility** built with:
 ## Code Style
 
 - Format with `gofmt`/`goimports`. Run `golangci-lint` (v2.8.0+) `run ./...` before commit.
-- **Linting Configuration**: MUST use `golangci-lint` v2 configuration schema (v2.8.x+). 
+- **Linting Configuration**: MUST use `golangci-lint` v2 configuration schema (v2.8.x+).
   - Top-level `version: "2"` is mandatory.
   - Use kebab-case for all linter settings.
   - Exclusions move to `linters: exclusions: rules`.
@@ -26,19 +27,29 @@ This project is an **Excel image insertion utility** built with:
 
 ## Project Structure
 
-```
+```text
 GoExcelImageImporter/
-  main.go              - Wails entry point
-  app.go               - Wails app bindings (Go methods exposed to JS)
+  main.go              - Wails v3 entry point, window & single-instance configuration
+  app.go               - Wails v3 Service (Go methods exposed to JS)
   updater.go           - Auto-update functionality from GitHub Releases
+  Taskfile.yml         - Wails v3 project build tasks (native build runner)
+  Makefile             - Dual-support developer build automation
   internal/
     engine/            - Core processing logic
-      processor.go       - Image-to-Excel engine with Worker Pool
+      processor.go       - Image-to-Excel engine with Worker Pool & row range filtering
       processor_test.go  - Unit tests for processor
-  frontend/            - Wails frontend (HTML/CSS/JS)
-  build/               - Build assets and output binaries
-  docs/                - Documentation and roadmap
-  wails.json           - Wails project configuration
+  frontend/            - Embedded UI assets
+    dist/
+      index.html       - HTML markup
+      style.css        - Application styling (4-column responsive config grid)
+      app.js           - Frontend controller (ES Module, typed bindings)
+      runtime.js       - Standalone bundled Wails v3 runtime
+      bindings/        - Generated JS/TS bindings for Go structs & services
+  build/               - Wails v3 build assets, icons, configs, and outputs
+    config.yml         - Wails v3 project metadata and dev-mode watcher config
+    devserver.go       - Lightweight stdlib dev server for live-reload dev mode
+    bin/               - Compiled binaries (tool_chen_anh.exe)
+  docs/                - Documentation, architecture diagrams, and roadmap
 ```
 
 ## Error Handling
@@ -55,12 +66,15 @@ GoExcelImageImporter/
 - Use Worker Pool pattern with `chan Job` and `chan Result` for parallel image loading.
 - Use `sync.WaitGroup` for coordinating workers.
 
-## Wails Integration
+## Wails v3 Integration
 
-- All Wails-bound methods must be on the `*App` struct and be exported (PascalCase).
-- Use `runtime.EventsEmit()` for progress updates to frontend.
-- Return structs with `json` tags for frontend consumption (e.g., `Config`, `ProcessResult`).
-- Use `runtime.OpenFileDialog()` and `runtime.OpenDirectoryDialog()` for native file/folder selection.
+- **Service Pattern**: Register `App` as a Wails service using `application.NewService(app)`.
+- **Lifecycle**: Methods must be exported (PascalCase) on `*App`. Use `ServiceStartup` for initialization.
+- **Single Instance**: Guard desktop lifecycle using `application.Options.SingleInstance` with unique ID (`com.hoangtran.goexcelimageimporter`).
+- **Dialogs**: Use `app.Dialog.OpenFile()` for native file and folder selection dialogs.
+- **Events**: Emit updates using `app.Event.Emit("eventName", data)` and listen in JS via `Events.On("eventName", (e) => ...)` (data in `e.data`).
+- **Data Transfer**: Return structs with `json` tags for frontend consumption (e.g., `Config`, `ProcessResult`).
+- **Build Automation**: Maintain dual support: `Taskfile.yml` for canonical Wails v3 orchestration, `Makefile` for developer shortcuts (`make build`, `make dev`, `make test`).
 
 ## Excel Processing (Excelize)
 
@@ -69,6 +83,7 @@ GoExcelImageImporter/
 - Use `f.AddPictureFromBytes()` to insert images with scaling options.
 - Use `f.SetRowHeight()` and `f.SetColWidth()` to adjust cell dimensions for images.
 - Always call `defer f.Close()` after opening an Excel file.
+- Support row range filtering (`StartRow` and `EndRow`, default 0 = all rows).
 
 ## Image Handling
 
@@ -103,7 +118,7 @@ GoExcelImageImporter/
 
 ### Library Version Awareness
 
-- Check `go.mod` for actual versions before suggesting APIs
+- Check `go.mod` for actual versions before suggesting APIs (Wails v3 beta)
 - LLMs hallucinate APIs for newer features not in training data
 - Prefer stable APIs over experimental features
 
@@ -118,7 +133,7 @@ GoExcelImageImporter/
 ## Quick Reference Links
 
 - [Effective Go](https://go.dev/doc/effective_go)
-- [Wails v2](https://github.com/wailsapp/wails)
+- [Wails v3](https://v3.wails.io/)
 - [Excelize v2](https://github.com/xuri/excelize)
 - [golangci-lint](https://github.com/golangci/golangci-lint)
 - [Go Image (x/image)](https://pkg.go.dev/golang.org/x/image)

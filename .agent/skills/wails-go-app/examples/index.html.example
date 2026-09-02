@@ -59,7 +59,7 @@
         </footer>
     </div>
 
-    <script src="wails.js"></script>
-    <script src="app.js"></script>
+    <!-- Wails v3 ES Module -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>

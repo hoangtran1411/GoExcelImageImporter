@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MsixPackagingToolTemplate
+    xmlns="http://schemas.microsoft.com/msix/packaging/msixpackagingtool/template/2022">
+    <Settings
+        AllowTelemetry="false"
+        ApplyACLsToPackageFiles="true"
+        GenerateCommandLineFile="true"
+        AllowPromptForPassword="false">
+    </Settings>
+    <Installer
+        Path="tool_chen_anh"
+        Arguments=""
+        InstallLocation="C:\Program Files\Hoang Tran\Image to Excel Importer">
+    </Installer>
+    <PackageInformation
+        PackageName="Image to Excel Importer"
+        PackageDisplayName="Image to Excel Importer"
+        PublisherName="CN=Hoang Tran"
+        PublisherDisplayName="Hoang Tran"
+        Version="0.1.0.0"
+        PackageDescription="Image to Excel Importer">
+        <Capabilities>
+            <Capability Name="runFullTrust" />
+            
+        </Capabilities>
+        <Applications>
+            <Application
+                Id="com.hoangtran.goexcelimageimporter"
+                Description="Image to Excel Importer"
+                DisplayName="Image to Excel Importer"
+                ExecutableName="tool_chen_anh"
+                EntryPoint="Windows.FullTrustApplication">
+                
+            </Application>
+        </Applications>
+        <Resources>
+            <Resource Language="en-us" />
+        </Resources>
+        <Dependencies>
+            <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+        </Dependencies>
+        <Properties>
+            <Framework>false</Framework>
+            <DisplayName>Image to Excel Importer</DisplayName>
+            <PublisherDisplayName>Hoang Tran</PublisherDisplayName>
+            <Description>Image to Excel Importer</Description>
+            <Logo>Assets\AppIcon.png</Logo>
+        </Properties>
+    </PackageInformation>
+    <SaveLocation PackagePath="goexcelimageimporter.msix" />
+    <PackageIntegrity>
+        <CertificatePath></CertificatePath>
+    </PackageIntegrity>
+</MsixPackagingToolTemplate>
